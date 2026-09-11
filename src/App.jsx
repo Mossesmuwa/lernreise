@@ -10,6 +10,8 @@ import Calendar from './pages/Calendar';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import Sharing from './pages/Sharing';
+import Trash from './pages/Trash';
+import Onboarding from './pages/Onboarding';
 import SharedDashboard from './pages/SharedDashboard';
 import TeacherView from './pages/TeacherView';
 
@@ -39,6 +41,8 @@ export default function App() {
         <Route path="/history" element={<History />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/settings/sharing" element={<Sharing />} />
+        <Route path="/settings/trash" element={<Trash />} />
+        <Route path="/onboarding" element={<Onboarding />} />
       </Route>
     </Routes>
   );

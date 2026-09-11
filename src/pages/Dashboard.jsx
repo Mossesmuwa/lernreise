@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getLevels, getCurrentCourse, listStudySessions, listTeacherClasses, listTeachers } from '../lib/api';
+import { calculateStreak } from '../lib/streak';
 import RecordStudyModal from '../components/RecordStudyModal';
 import AddEditClassModal from '../components/AddEditClassModal';
 import ClassDetailDrawer from '../components/ClassDetailDrawer';
@@ -61,6 +62,7 @@ export default function Dashboard() {
   const weekMin = sessions.filter((s) => s.session_date >= weekStart).reduce((a, s) => a + s.duration_minutes, 0);
   const monthMin = sessions.reduce((a, s) => a + s.duration_minutes, 0);
   const totalMin = allSessions.reduce((a, s) => a + s.duration_minutes, 0);
+  const streak = calculateStreak(allSessions.map((s) => s.session_date));
 
   const allLessons = course?.modules?.flatMap((m) => m.lessons) ?? [];
   const currentLesson = allLessons.find((l) => l.status === 'in_progress');
@@ -69,6 +71,18 @@ export default function Dashboard() {
 
   const todaysClasses = classes.filter((c) => c.scheduled_at.slice(0, 10) === today);
   const upcoming = classes.filter((c) => c.scheduled_at.slice(0, 10) !== today).slice(0, 3);
+
+  if (levels.length === 0) {
+    return (
+      <div className="p-4 max-w-md mx-auto text-center space-y-3 pt-10">
+        <p className="font-display text-lg">Let's set up your journey</p>
+        <p className="text-sm text-ink/60">No course data yet — a quick one-time setup gets you started.</p>
+        <Link to="/onboarding" className="inline-block rounded-lg bg-pine text-white text-sm font-medium px-4 py-2.5">
+          Get started
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-5">
@@ -130,6 +144,8 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {streak > 0 && <p className="text-sm text-amber">🔥 {streak}-day streak</p>}
 
       <div>
         <p className="text-xs text-ink/60 mb-2">Today</p>

@@ -101,6 +101,7 @@ create table teacher_classes (
   duration_minutes int,
   notes text,
   remind_before_minutes int,
+  reminder_sent boolean not null default false,
   created_at timestamptz not null default now(),
   deleted_at timestamptz
 );

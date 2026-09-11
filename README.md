@@ -2,23 +2,38 @@
 
 Personal German-learning tracker. See `LERNREISE-SPEC.md` for the full product spec and `schema.sql` for the database.
 
-## Setup
+## Setup — creating your account
 
-1. Create a Supabase project, then run `schema.sql` in its SQL editor.
-2. Create two Storage buckets: `avatars` and `book-covers` (public read, owner-only write).
-3. Insert your one `public_profile` row and one `settings` row for your account.
-4. `cp .env.example .env` and fill in `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` from your Supabase project settings.
-5. `npm install`
-6. `npm run dev`
+There's no public signup page by design (see the spec's Auth & security section) — the one owner account is created directly in Supabase, not through the app.
 
-## What's scaffolded so far
+1. Create a Supabase project.
+2. Run `schema.sql` in the SQL editor.
+3. Run `storage-setup.sql` (creates the `avatars` and `book-covers` buckets + policies).
+4. Authentication → Users → **Add user** → enter your email and a password directly (no confirmation email needed this way). This creates your one `auth.users` row.
+5. Copy that user's UID from the Users list.
+6. Open `seed.sql`, replace the placeholder UUID at the top with your real UID, and run it. This creates your `public_profile`/`settings` rows plus the actual A1/A2 data from planning — edit the values first if anything's changed since.
+7. `cp .env.example .env`, fill in `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` from Settings → API in your Supabase project.
+8. `npm install && npm run dev`
+9. Go to `/login` and sign in with the email/password from step 4.
 
-- Routing shell (`src/App.jsx`) with the four main pages behind the bottom nav, plus `/login`
-- Supabase client (`src/lib/supabaseClient.js`)
-- DE/EN string dictionary pattern (`src/lib/i18n.js`) — extend this as each page is built, never route the owner's own entered data through it
-- A fully built Login page (`src/pages/Login.jsx`), including the public-profile lookup for the personal greeting/avatar before sign-in
-- Design tokens in `tailwind.config.js` (sage/pine/amber palette, Fraunces + IBM Plex Sans)
+## What's real and wired up
 
-## What's next
+Login (+ forgot/reset password), auth guard, Dashboard, Course, Calendar, History, Settings, Sharing, Trash, Onboarding, the public read-only Visitor view (`/shared/:token`) and Teacher view (`/teacher/:token`) — all backed by `src/lib/api.js` and the schema. Responsive: sidebar + side-panel drawers at `md:` and up, bottom nav + full-screen drawers below it. `npm run build` passes clean.
 
-Dashboard, Course, Calendar, History, Settings, and Sharing are placeholder stubs — build these in the order suggested in the spec's "Suggested build order" section.
+## Not yet verified end-to-end
+
+Nothing in this project has been run in a browser or against a live Supabase project — there's no browser available in the environment it was built in. `npm run build` catches syntax/import errors, not runtime behavior. Treat the first real run as the actual test.
+
+## The two Edge Functions — unverified, need real setup
+
+`supabase/functions/send-class-reminders` and `send-weekly-summary` are hand-written, never deployed or run. To use them:
+
+- `supabase functions deploy send-class-reminders` (and the other one)
+- `supabase secrets set RESEND_API_KEY=... RESEND_FROM=you@yourdomain.com` (or swap in whatever email provider you'd rather use — the Resend call is the only provider-specific part)
+- Schedule each on a cron (Dashboard → Edge Functions → Cron, or `pg_cron` + `net.http_post`): reminders every 10–15 minutes, the summary once a week.
+
+## Known gaps, honestly
+
+- The Edge Functions above are unverified.
+- No automated tests exist anywhere in this project.
+- Desktop layout has only been reasoned through, never visually checked in a real browser.

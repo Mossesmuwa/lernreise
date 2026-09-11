@@ -150,6 +150,31 @@ export async function softDeleteTeacherClass(id) {
   if (error) throw error;
 }
 
+export async function restoreTeacherClass(id) {
+  const { error } = await supabase.from('teacher_classes').update({ deleted_at: null }).eq('id', id);
+  if (error) throw error;
+}
+
+export async function listDeletedStudySessions() {
+  const { data, error } = await supabase
+    .from('study_sessions')
+    .select('id, session_date, duration_minutes, deleted_at, lesson:lessons(name)')
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function listDeletedTeacherClasses() {
+  const { data, error } = await supabase
+    .from('teacher_classes')
+    .select('id, scheduled_at, deleted_at, lesson:lessons(name)')
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
 export async function listTeachers() {
   const { data, error } = await supabase.from('teachers').select('id, name, institution_id').order('name');
   if (error) throw error;

@@ -149,6 +149,9 @@ export default function Settings() {
       <Link to="/settings/sharing" className="block bg-card border border-mist rounded-xl px-4 py-3 text-sm">
         Sharing →
       </Link>
+      <Link to="/settings/trash" className="block bg-card border border-mist rounded-xl px-4 py-3 text-sm">
+        Trash →
+      </Link>
 
       <section>
         <p className="text-xs text-ink/60 mb-2">Notifications</p>
