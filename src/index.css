@@ -15,3 +15,20 @@
     @apply outline outline-2 outline-offset-2 outline-pine;
   }
 }
+
+/* Dark theme: overrides the handful of tokens every page is built from,
+   rather than adding dark: variants to every single class use. */
+.dark {
+  background-color: #1B211D;
+  color: #E7EAE6;
+}
+.dark .bg-paper { background-color: #1B211D; }
+.dark .bg-card { background-color: #232B26; }
+.dark .border-mist { border-color: #39433D; }
+.dark .text-ink { color: #E7EAE6; }
+.dark .text-ink\/70 { color: rgba(231, 234, 230, 0.7); }
+.dark .text-ink\/60 { color: rgba(231, 234, 230, 0.6); }
+.dark .text-ink\/50 { color: rgba(231, 234, 230, 0.5); }
+.dark .text-ink\/40 { color: rgba(231, 234, 230, 0.4); }
+.dark .text-ink\/30 { color: rgba(231, 234, 230, 0.3); }
+.dark .bg-ink\/30 { background-color: rgba(0, 0, 0, 0.5); }

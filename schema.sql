@@ -223,3 +223,111 @@ language sql security definer
 as $$
   insert into share_access_log (share_link_id) values (p_share_link_id);
 $$;
+
+-- A viewer link's read-only data. Anon can never query levels/courses/etc.
+-- directly (RLS blocks it, since they have no auth.uid()), so this single
+-- function does the owner lookup + the read in one security-definer call.
+create or replace function get_shared_dashboard(p_token text)
+returns jsonb
+language plpgsql security definer
+as $$
+declare
+  v_share record;
+  v_owner uuid;
+  v_result jsonb;
+begin
+  select * into v_share from share_links
+    where token = p_token and revoked = false and (expires_at is null or expires_at > now());
+  if v_share is null or v_share.role <> 'viewer' then
+    return null;
+  end if;
+  v_owner := v_share.owner_id;
+
+  select jsonb_build_object(
+    'levels', (
+      select coalesce(jsonb_agg(jsonb_build_object('id', l.id, 'name', l.name, 'status', l.status) order by l.sort_order), '[]'::jsonb)
+      from levels l where l.owner_id = v_owner
+    ),
+    'current_course', (
+      select jsonb_build_object('title', c.title, 'cover_image_url', c.cover_image_url)
+      from courses c where c.owner_id = v_owner and c.status = 'current' limit 1
+    ),
+    'upcoming_classes', (
+      select coalesce(jsonb_agg(jsonb_build_object('scheduled_at', tc.scheduled_at, 'status', tc.status, 'lesson_name', l.name) order by tc.scheduled_at), '[]'::jsonb)
+      from teacher_classes tc join lessons l on l.id = tc.lesson_id
+      where tc.owner_id = v_owner and tc.scheduled_at > now() and tc.deleted_at is null
+      limit 5
+    ),
+    'week_minutes', (
+      select coalesce(sum(duration_minutes), 0) from study_sessions
+      where owner_id = v_owner and session_date >= date_trunc('week', now()) and deleted_at is null
+    ),
+    'total_minutes', (
+      select coalesce(sum(duration_minutes), 0) from study_sessions
+      where owner_id = v_owner and deleted_at is null
+    )
+  ) into v_result;
+
+  perform record_share_access(v_share.id);
+  return v_result;
+end;
+$$;
+
+-- A teacher_editor link's own classes only — never the owner's study
+-- sessions, other teachers' classes, or anything else.
+create or replace function get_teacher_classes(p_token text)
+returns jsonb
+language plpgsql security definer
+as $$
+declare
+  v_share record;
+  v_result jsonb;
+begin
+  select * into v_share from share_links
+    where token = p_token and revoked = false and (expires_at is null or expires_at > now());
+  if v_share is null or v_share.role <> 'teacher_editor' then
+    return null;
+  end if;
+
+  perform record_share_access(v_share.id);
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id', tc.id, 'scheduled_at', tc.scheduled_at, 'status', tc.status, 'lesson_name', l.name
+  ) order by tc.scheduled_at), '[]'::jsonb) into v_result
+  from teacher_classes tc join lessons l on l.id = tc.lesson_id
+  where tc.owner_id = v_share.owner_id and tc.teacher_id = v_share.teacher_id and tc.deleted_at is null;
+
+  return v_result;
+end;
+$$;
+
+-- The only write a teacher_editor link can ever make: reschedule one of
+-- their own classes. Scoped to owner_id + teacher_id so a link for Frau
+-- Cathy can never touch Frau Nora's classes, let alone anything else.
+create or replace function teacher_reschedule_class(p_token text, p_class_id uuid, p_new_scheduled_at timestamptz)
+returns boolean
+language plpgsql security definer
+as $$
+declare
+  v_share record;
+  v_old timestamptz;
+begin
+  select * into v_share from share_links
+    where token = p_token and revoked = false and (expires_at is null or expires_at > now());
+  if v_share is null or v_share.role <> 'teacher_editor' then
+    return false;
+  end if;
+
+  select scheduled_at into v_old from teacher_classes
+    where id = p_class_id and owner_id = v_share.owner_id and teacher_id = v_share.teacher_id;
+  if v_old is null then
+    return false;
+  end if;
+
+  update teacher_classes
+    set scheduled_at = p_new_scheduled_at, original_scheduled_at = v_old, status = 'rescheduled'
+    where id = p_class_id;
+
+  return true;
+end;
+$$;
