@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { updatePassword } from '../authApi';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export default function ResetPassword() {
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitting(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    const { error: updateError } = await updatePassword(password);
     setSubmitting(false);
     if (updateError) {
       setError('That link may have expired — request a new one.');

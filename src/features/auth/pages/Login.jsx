@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
-import { t, getStoredLang } from "../lib/i18n";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getPublicProfile } from "../../account/accountApi";
+import { signIn } from "../authApi";
+import { t, getStoredLang } from "../../../lib/i18n";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [lang] = useState(getStoredLang());
   const [profile, setProfile] = useState(null);
   const [email, setEmail] = useState("");
@@ -15,27 +17,20 @@ export default function Login() {
   useEffect(() => {
     // public_profile is anon-readable by design, specifically so this
     // screen can show a name/photo before anyone has signed in.
-    supabase
-      .from("public_profile")
-      .select("display_name, avatar_url")
-      .maybeSingle()
-      .then(({ data }) => setProfile(data));
+    getPublicProfile().then(setProfile);
   }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: signInError } = await signIn(email, password);
     setSubmitting(false);
     if (signInError) {
       setError(t("error", lang));
       return;
     }
-    navigate("/");
+    navigate(location.state?.from?.pathname || "/", { replace: true });
   }
 
   return (

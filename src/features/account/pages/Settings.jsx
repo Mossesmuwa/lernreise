@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import NavRow from "../components/NavRow";
-import Toggle from "../components/Toggle";
-import SegmentedControl from "../components/SegmentedControl";
-import SettingsSkeleton from "../components/SettingsSkeleton";
-import { supabase } from "../lib/supabaseClient";
-import { useAuth } from "../lib/AuthContext";
+import NavRow from "../../../components/NavRow";
+import Toggle from "../../../components/Toggle";
+import SegmentedControl from "../../../components/SegmentedControl";
+import SettingsSkeleton from "../../../components/SettingsSkeleton";
+import { updatePassword, signOut } from "../../auth/authApi";
+import { useAuth } from "../../auth/AuthContext";
 import {
   getSettings,
   updateSettings,
   getPublicProfile,
   updatePublicProfile,
+} from "../accountApi";
+import {
   listStudySessions,
   listTeacherClasses,
-} from "../lib/api";
+} from "../../../lib/api";
 
 function toCSV(sessions, classes) {
   const rows = [
@@ -117,7 +119,7 @@ export default function Settings() {
 
   async function handlePasswordChange(event) {
     event.preventDefault();
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { error } = await updatePassword(newPassword);
     setPasswordError(Boolean(error));
     setPasswordMsg(error ? "Something went wrong." : "Password updated.");
     setNewPassword("");
@@ -283,7 +285,7 @@ export default function Settings() {
         Export data (CSV)
       </button>
       <button
-        onClick={() => supabase.auth.signOut()}
+        onClick={signOut}
         className="w-full rounded-lg border border-mist text-sm font-medium py-2.5 text-red-700"
       >
         Sign out

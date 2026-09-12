@@ -1,6 +1,6 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { useAuth } from '../lib/AuthContext';
-import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../features/auth/AuthContext';
+import { signOut } from '../features/auth/authApi';
 
 const navItems = [
   { to: '/', label: 'Dashboard', end: true },
@@ -38,7 +38,7 @@ export default function Layout() {
         </Link>
         {session && (
           <button
-            onClick={() => supabase.auth.signOut()}
+            onClick={signOut}
             className="text-left rounded-lg px-3 py-2 text-sm text-ink/50 hover:bg-paper"
           >
             Sign out

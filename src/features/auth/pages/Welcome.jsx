@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { supabase } from "../lib/supabaseClient";
-import { t, getStoredLang, setStoredLang } from "../lib/i18n";
-import SegmentedControl from "../components/SegmentedControl";
-import { IconLock, IconKey } from "../components/icons";
+import { getPublicProfile } from "../../account/accountApi";
+import { t, getStoredLang, setStoredLang } from "../../../lib/i18n";
+import SegmentedControl from "../../../components/SegmentedControl";
+import { IconLock, IconKey } from "../../../components/icons";
 
 const container = {
   hidden: {},
@@ -21,11 +21,7 @@ export default function Welcome() {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    supabase
-      .from("public_profile")
-      .select("display_name, avatar_url")
-      .maybeSingle()
-      .then(({ data }) => setProfile(data));
+    getPublicProfile().then(setProfile);
   }, []);
 
   function handleLangChange(next) {
