@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
 import {
   claimShareLink,
@@ -106,15 +106,13 @@ export default function SharedDashboard() {
     return (
       <StatusMessage
         icon="⚠️"
-        title="Something went wrong"
-        subtitle="This may be temporary — try again."
+        title="This shared view could not open"
+        subtitle="The link may need to be claimed again, Anonymous Sign-Ins may be disabled, or the share-link migration has not been applied."
         action={
-          <button
-            onClick={load}
-            className="text-sm text-pine underline underline-offset-2"
-          >
-            Retry
-          </button>
+          <div className="flex flex-col items-center gap-2">
+            <button onClick={load} className="text-sm text-pine underline underline-offset-2">Retry</button>
+            <Link to="/welcome" className="text-xs text-ink/50 underline underline-offset-2">Return to Lernreise</Link>
+          </div>
         }
       />
     );

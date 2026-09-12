@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   claimShareLink,
   ensureShareSession,
@@ -89,8 +89,9 @@ export default function TeacherView() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <ErrorState
           onRetry={load}
-          description={error?.message || "We could not load this teacher view."}
+          description="The link may need to be claimed again, Anonymous Sign-Ins may be disabled, or the share-link migration has not been applied."
         />
+        <Link to="/welcome" className="text-xs text-ink/50 underline underline-offset-2">Return to Lernreise</Link>
       </div>
     );
   if (state === "invalid") {

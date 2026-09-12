@@ -16,6 +16,7 @@ import Onboarding from "./pages/Onboarding";
 import SharedDashboard from "./pages/SharedDashboard";
 import TeacherView from "./pages/TeacherView";
 import AccessCode from "./pages/AccessCode";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   return (
@@ -48,6 +49,8 @@ export default function App() {
         <Route path="/settings/trash" element={<Trash />} />
         <Route path="/onboarding" element={<Onboarding />} />
       </Route>
+
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
