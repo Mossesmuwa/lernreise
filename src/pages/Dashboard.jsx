@@ -170,7 +170,11 @@ export default function Dashboard() {
       className="p-4 md:p-0 max-w-5xl mx-auto space-y-8"
     >
       <PageHeader
-        eyebrow={new Date().toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}
+        eyebrow={new Date().toLocaleDateString([], {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}
         title={greeting()}
         description="Your next small step is already waiting."
       />
@@ -282,75 +286,81 @@ export default function Dashboard() {
       )}
 
       <div className="grid md:grid-cols-2 gap-4">
-      <section className="rounded-2xl border border-mist bg-card p-5 shadow-[var(--lr-shadow-soft)]">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pine">Today</p>
-            <p className="font-display text-lg mt-1">Your activity</p>
+        <section className="rounded-2xl border border-mist bg-card p-5 shadow-[var(--lr-shadow-soft)]">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pine">
+                Today
+              </p>
+              <p className="font-display text-lg mt-1">Your activity</p>
+            </div>
+            <span className="w-8 h-8 rounded-full bg-pine-soft text-pine flex items-center justify-center text-xs">
+              {todaysSessions.length + todaysClasses.length}
+            </span>
           </div>
-          <span className="w-8 h-8 rounded-full bg-pine-soft text-pine flex items-center justify-center text-xs">{todaysSessions.length + todaysClasses.length}</span>
-        </div>
-        {todaysSessions.map((s) => (
-          <div key={s.id} className="py-2 border-b border-mist text-sm">
-            {fmtHM(s.duration_minutes)} studied · {s.lesson?.name}
-          </div>
-        ))}
-        {todaysClasses.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setSelectedClass(c)}
-            className="w-full text-left py-2 border-b border-mist text-sm"
-          >
-            German class ·{" "}
-            {new Date(c.scheduled_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}{" "}
-            · {c.lesson?.name}
-          </button>
-        ))}
-        {todaysSessions.length === 0 && todaysClasses.length === 0 && (
-          <p className="text-sm text-ink/40 py-2">Nothing yet today.</p>
-        )}
-      </section>
-
-      <section className="rounded-2xl border border-mist bg-card p-5 shadow-[var(--lr-shadow-soft)]">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pine">Next up</p>
-            <p className="font-display text-lg mt-1">Upcoming classes</p>
-          </div>
-          <TextLink to="/calendar">View calendar</TextLink>
-        </div>
-        {upcoming.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setSelectedClass(c)}
-            className="w-full flex justify-between items-center text-left py-2 border-b border-mist text-sm"
-          >
-            <span>
-              {new Date(c.scheduled_at).toLocaleDateString([], {
-                weekday: "short",
-                day: "numeric",
-                month: "short",
-              })}{" "}
-              ·{" "}
+          {todaysSessions.map((s) => (
+            <div key={s.id} className="py-2 border-b border-mist text-sm">
+              {fmtHM(s.duration_minutes)} studied · {s.lesson?.name}
+            </div>
+          ))}
+          {todaysClasses.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setSelectedClass(c)}
+              className="w-full text-left py-2 border-b border-mist text-sm"
+            >
+              German class ·{" "}
               {new Date(c.scheduled_at).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
-              })}
-            </span>
-            {c.status === "rescheduled" && (
-              <span className="text-[11px] bg-amber-soft text-amber px-2 py-0.5 rounded">
-                Changed
+              })}{" "}
+              · {c.lesson?.name}
+            </button>
+          ))}
+          {todaysSessions.length === 0 && todaysClasses.length === 0 && (
+            <p className="text-sm text-ink/40 py-2">Nothing yet today.</p>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-mist bg-card p-5 shadow-[var(--lr-shadow-soft)]">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pine">
+                Next up
+              </p>
+              <p className="font-display text-lg mt-1">Upcoming classes</p>
+            </div>
+            <TextLink to="/calendar">View calendar</TextLink>
+          </div>
+          {upcoming.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setSelectedClass(c)}
+              className="w-full flex justify-between items-center text-left py-2 border-b border-mist text-sm"
+            >
+              <span>
+                {new Date(c.scheduled_at).toLocaleDateString([], {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                })}{" "}
+                ·{" "}
+                {new Date(c.scheduled_at).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </span>
-            )}
-          </button>
-        ))}
-        {upcoming.length === 0 && (
-          <p className="text-sm text-ink/40 py-2">Nothing scheduled.</p>
-        )}
-      </section>
+              {c.status === "rescheduled" && (
+                <span className="text-[11px] bg-amber-soft text-amber px-2 py-0.5 rounded">
+                  Changed
+                </span>
+              )}
+            </button>
+          ))}
+          {upcoming.length === 0 && (
+            <p className="text-sm text-ink/40 py-2">Nothing scheduled.</p>
+          )}
+        </section>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
