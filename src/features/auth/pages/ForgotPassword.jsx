@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { requestPasswordReset } from '../authApi';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { requestPasswordReset } from "../authApi";
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -15,7 +15,7 @@ export default function ForgotPassword() {
     const { error: resetError } = await requestPasswordReset(email);
     setSubmitting(false);
     if (resetError) {
-      setError('Something went wrong sending that email. Try again.');
+      setError("Something went wrong sending that email. Try again.");
       return;
     }
     setSent(true);

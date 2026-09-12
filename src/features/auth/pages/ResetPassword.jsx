@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { updatePassword } from '../authApi';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { updatePassword } from "../authApi";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -14,10 +14,10 @@ export default function ResetPassword() {
     const { error: updateError } = await updatePassword(password);
     setSubmitting(false);
     if (updateError) {
-      setError('That link may have expired — request a new one.');
+      setError("That link may have expired — request a new one.");
       return;
     }
-    navigate('/');
+    navigate("/");
   }
 
   return (

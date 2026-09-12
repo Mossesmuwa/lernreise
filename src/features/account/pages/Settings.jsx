@@ -12,10 +12,7 @@ import {
   getPublicProfile,
   updatePublicProfile,
 } from "../accountApi";
-import {
-  listStudySessions,
-  listTeacherClasses,
-} from "../../../lib/api";
+import { listStudySessions, listTeacherClasses } from "../../../lib/api";
 
 function toCSV(sessions, classes) {
   const rows = [

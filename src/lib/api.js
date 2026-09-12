@@ -140,14 +140,12 @@ export async function addStudySession({
   durationMinutes,
   notes,
 }) {
-  const { error } = await supabase
-    .from("study_sessions")
-    .insert({
-      lesson_id: lessonId,
-      session_date: sessionDate,
-      duration_minutes: durationMinutes,
-      notes,
-    });
+  const { error } = await supabase.from("study_sessions").insert({
+    lesson_id: lessonId,
+    session_date: sessionDate,
+    duration_minutes: durationMinutes,
+    notes,
+  });
   if (error) throw error;
 }
 
@@ -199,15 +197,13 @@ export async function addTeacherClass({
   mode,
   notes,
 }) {
-  const { error } = await supabase
-    .from("teacher_classes")
-    .insert({
-      lesson_id: lessonId,
-      teacher_id: teacherId,
-      scheduled_at: scheduledAt,
-      mode,
-      notes,
-    });
+  const { error } = await supabase.from("teacher_classes").insert({
+    lesson_id: lessonId,
+    teacher_id: teacherId,
+    scheduled_at: scheduledAt,
+    mode,
+    notes,
+  });
   if (error) throw error;
 }
 
@@ -295,16 +291,14 @@ export async function getActiveTimer() {
 
 export async function startTimer(lessonId) {
   const { data: userData } = await supabase.auth.getUser();
-  const { error } = await supabase
-    .from("active_timer")
-    .upsert(
-      {
-        owner_id: userData.user.id,
-        lesson_id: lessonId,
-        started_at: new Date().toISOString(),
-      },
-      { onConflict: "owner_id" },
-    );
+  const { error } = await supabase.from("active_timer").upsert(
+    {
+      owner_id: userData.user.id,
+      lesson_id: lessonId,
+      started_at: new Date().toISOString(),
+    },
+    { onConflict: "owner_id" },
+  );
   if (error) throw error;
 }
 
