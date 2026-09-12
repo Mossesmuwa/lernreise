@@ -110,8 +110,18 @@ export default function SharedDashboard() {
         subtitle="The link may need to be claimed again, Anonymous Sign-Ins may be disabled, or the share-link migration has not been applied."
         action={
           <div className="flex flex-col items-center gap-2">
-            <button onClick={load} className="text-sm text-pine underline underline-offset-2">Retry</button>
-            <Link to="/welcome" className="text-xs text-ink/50 underline underline-offset-2">Return to Lernreise</Link>
+            <button
+              onClick={load}
+              className="text-sm text-pine underline underline-offset-2"
+            >
+              Retry
+            </button>
+            <Link
+              to="/welcome"
+              className="text-xs text-ink/50 underline underline-offset-2"
+            >
+              Return to Lernreise
+            </Link>
           </div>
         }
       />

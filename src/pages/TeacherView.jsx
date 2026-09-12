@@ -91,7 +91,12 @@ export default function TeacherView() {
           onRetry={load}
           description="The link may need to be claimed again, Anonymous Sign-Ins may be disabled, or the share-link migration has not been applied."
         />
-        <Link to="/welcome" className="text-xs text-ink/50 underline underline-offset-2">Return to Lernreise</Link>
+        <Link
+          to="/welcome"
+          className="text-xs text-ink/50 underline underline-offset-2"
+        >
+          Return to Lernreise
+        </Link>
       </div>
     );
   if (state === "invalid") {
