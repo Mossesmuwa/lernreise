@@ -86,10 +86,10 @@ This project requires a Supabase project for authentication and data.
 9. Enable anonymous sign-ins in Supabase Auth. This is required for the one-session read-only sharing flow.
 10. Install dependencies and start the app:
 
-   ```bash
-   npm install
-   npm run dev
-   ```
+```bash
+npm install
+npm run dev
+```
 
 11. Open `/login` for the owner application or `/welcome` for the access selection screen.
 
