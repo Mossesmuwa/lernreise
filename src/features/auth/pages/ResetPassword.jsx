@@ -36,9 +36,27 @@ export default function ResetPassword() {
         <p className="font-display text-pine text-sm mb-6">Lernreise</p>
         <h1 className="font-display text-xl mb-4">Choose a new password</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="password" required minLength={12} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New password" className="w-full rounded-lg border border-mist bg-paper px-3 py-2 text-sm" />
-          <input type="password" required minLength={12} value={confirmation} onChange={(e) => setConfirmation(e.target.value)} placeholder="Confirm new password" className="w-full rounded-lg border border-mist bg-paper px-3 py-2 text-sm" />
-          <p className="text-xs text-ink/50">Use 12 or more characters. A passphrase is easiest to remember.</p>
+          <input
+            type="password"
+            required
+            minLength={12}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="New password"
+            className="w-full rounded-lg border border-mist bg-paper px-3 py-2 text-sm"
+          />
+          <input
+            type="password"
+            required
+            minLength={12}
+            value={confirmation}
+            onChange={(e) => setConfirmation(e.target.value)}
+            placeholder="Confirm new password"
+            className="w-full rounded-lg border border-mist bg-paper px-3 py-2 text-sm"
+          />
+          <p className="text-xs text-ink/50">
+            Use 12 or more characters. A passphrase is easiest to remember.
+          </p>
           {error && <p className="text-sm text-red-700">{error}</p>}
           <button
             type="submit"
