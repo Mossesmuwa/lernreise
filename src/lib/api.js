@@ -93,6 +93,29 @@ export async function setLevelCurrent(levelId) {
   if (error) throw error;
 }
 
+export async function getLevelDetail(levelId) {
+  const { data: level, error: e1 } = await supabase
+    .from("levels")
+    .select(
+      "id, name, status, courses(id, title, status, start_date, end_date, estimated_end_date, institution:institutions(id, name))",
+    )
+    .eq("id", levelId)
+    .single();
+  if (e1) throw e1;
+
+  const course = level.courses?.[0] ?? null;
+  let teachers = [];
+  if (course?.institution?.id) {
+    const { data, error: e2 } = await supabase
+      .from("teachers")
+      .select("id, name, contact")
+      .eq("institution_id", course.institution.id);
+    if (e2) throw e2;
+    teachers = data;
+  }
+  return { level, course, teachers };
+}
+
 // ---------- Study sessions ----------
 
 export async function listStudySessions({ from, to, search } = {}) {

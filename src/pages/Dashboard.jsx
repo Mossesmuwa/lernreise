@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "motion/react";
 import TextLink from "../components/TextLink";
+import DashboardSkeleton from "../components/DashboardSkeleton";
 import {
   getLevels,
   getCurrentCourse,
@@ -15,11 +17,12 @@ import ClassDetailDrawer from "../components/ClassDetailDrawer";
 
 const STATUS_MARK = { completed: "✓", current: "●", not_started: "○" };
 
-function startOfWeekISO() {
+function startOfWeek(offsetWeeks = 0) {
   const d = new Date();
   const day = (d.getDay() + 6) % 7; // Monday = 0
-  d.setDate(d.getDate() - day);
-  return d.toISOString().slice(0, 10);
+  d.setDate(d.getDate() - day + offsetWeeks * 7);
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
 function startOfMonthISO() {
   const d = new Date();
@@ -30,9 +33,9 @@ function fmtHM(min) {
 }
 
 export default function Dashboard() {
+  const [status, setStatus] = useState("loading"); // loading | error | ready
   const [levels, setLevels] = useState([]);
   const [course, setCourse] = useState(null);
-  const [sessions, setSessions] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -42,39 +45,73 @@ export default function Dashboard() {
   const [editingClass, setEditingClass] = useState(null);
 
   async function load() {
-    const [lvls, crs, monthSessions, everySessionEver, clsList, tchrs] =
-      await Promise.all([
+    setStatus("loading");
+    try {
+      const [lvls, crs, everySessionEver, clsList, tchrs] = await Promise.all([
         getLevels(),
         getCurrentCourse(),
-        listStudySessions({ from: startOfMonthISO() }),
         listStudySessions({}),
         listTeacherClasses({ from: new Date().toISOString() }),
         listTeachers(),
       ]);
-    setLevels(lvls);
-    setCourse(crs);
-    setSessions(monthSessions);
-    setAllSessions(everySessionEver);
-    setClasses(clsList);
-    setTeachers(tchrs);
+      setLevels(lvls);
+      setCourse(crs);
+      setAllSessions(everySessionEver);
+      setClasses(clsList);
+      setTeachers(tchrs);
+      setStatus("ready");
+    } catch (err) {
+      console.error("Failed to load dashboard", err);
+      setStatus("error");
+    }
   }
 
   useEffect(() => {
     load();
   }, []);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const weekStart = startOfWeekISO();
+  if (status === "loading") return <DashboardSkeleton />;
 
-  const todayMin = sessions
+  if (status === "error") {
+    return (
+      <div className="p-4 max-w-md mx-auto text-center space-y-3 pt-10">
+        <p className="font-display text-lg">Something went wrong</p>
+        <p className="text-sm text-ink/60">
+          Couldn't load your dashboard — this may be temporary.
+        </p>
+        <button
+          onClick={load}
+          className="text-sm text-pine underline underline-offset-2"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const thisWeekStart = startOfWeek(0).toISOString().slice(0, 10);
+  const lastWeekStart = startOfWeek(-1).toISOString().slice(0, 10);
+  const monthStart = startOfMonthISO();
+
+  const todayMin = allSessions
     .filter((s) => s.session_date === today)
     .reduce((a, s) => a + s.duration_minutes, 0);
-  const weekMin = sessions
-    .filter((s) => s.session_date >= weekStart)
+  const weekMin = allSessions
+    .filter((s) => s.session_date >= thisWeekStart)
     .reduce((a, s) => a + s.duration_minutes, 0);
-  const monthMin = sessions.reduce((a, s) => a + s.duration_minutes, 0);
+  const lastWeekMin = allSessions
+    .filter(
+      (s) => s.session_date >= lastWeekStart && s.session_date < thisWeekStart,
+    )
+    .reduce((a, s) => a + s.duration_minutes, 0);
+  const monthMin = allSessions
+    .filter((s) => s.session_date >= monthStart)
+    .reduce((a, s) => a + s.duration_minutes, 0);
   const totalMin = allSessions.reduce((a, s) => a + s.duration_minutes, 0);
   const streak = calculateStreak(allSessions.map((s) => s.session_date));
+
+  const weekDelta = weekMin - lastWeekMin;
 
   const allLessons = course?.modules?.flatMap((m) => m.lessons) ?? [];
   const currentLesson = allLessons.find((l) => l.status === "in_progress");
@@ -91,6 +128,7 @@ export default function Dashboard() {
   const upcoming = classes
     .filter((c) => c.scheduled_at.slice(0, 10) !== today)
     .slice(0, 3);
+  const todaysSessions = allSessions.filter((s) => s.session_date === today);
 
   if (levels.length === 0) {
     return (
@@ -110,7 +148,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-5">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-5"
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-ink/60">Guten Tag</p>
@@ -161,7 +204,7 @@ export default function Dashboard() {
               </p>
               <div className="h-1.5 bg-paper rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-pine"
+                  className="h-full bg-pine transition-all duration-500"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
@@ -171,35 +214,50 @@ export default function Dashboard() {
       )}
 
       <div className="grid grid-cols-2 gap-2">
-        {[
-          ["Today", todayMin],
-          ["This week", weekMin],
-          ["This month", monthMin],
-          ["Total", totalMin],
-        ].map(([label, min]) => (
-          <div
-            key={label}
-            className="bg-card border border-mist rounded-lg p-3"
-          >
-            <p className="text-[11px] text-ink/60">{label}</p>
-            <p className="text-lg font-medium">{fmtHM(min)}</p>
-          </div>
-        ))}
+        <div className="bg-card border border-mist rounded-lg p-3">
+          <p className="text-[11px] text-ink/60">Today</p>
+          <p className="text-lg font-medium">{fmtHM(todayMin)}</p>
+        </div>
+        <div className="bg-card border border-mist rounded-lg p-3">
+          <p className="text-[11px] text-ink/60">This week</p>
+          <p className="text-lg font-medium">{fmtHM(weekMin)}</p>
+          {lastWeekMin > 0 && (
+            <p
+              className={`text-[11px] mt-0.5 ${weekDelta >= 0 ? "text-pine" : "text-ink/40"}`}
+            >
+              {weekDelta >= 0 ? "↑" : "↓"} {fmtHM(Math.abs(weekDelta))} vs last
+              week
+            </p>
+          )}
+        </div>
+        <div className="bg-card border border-mist rounded-lg p-3">
+          <p className="text-[11px] text-ink/60">This month</p>
+          <p className="text-lg font-medium">{fmtHM(monthMin)}</p>
+        </div>
+        <div className="bg-card border border-mist rounded-lg p-3">
+          <p className="text-[11px] text-ink/60">Total</p>
+          <p className="text-lg font-medium">{fmtHM(totalMin)}</p>
+        </div>
       </div>
 
       {streak > 0 && (
-        <p className="text-sm text-amber">🔥 {streak}-day streak</p>
+        <motion.p
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          className="text-sm text-amber inline-block"
+        >
+          🔥 {streak}-day streak
+        </motion.p>
       )}
 
       <div>
         <p className="text-xs text-ink/60 mb-2">Today</p>
-        {sessions
-          .filter((s) => s.session_date === today)
-          .map((s) => (
-            <div key={s.id} className="py-2 border-b border-mist text-sm">
-              {fmtHM(s.duration_minutes)} studied · {s.lesson?.name}
-            </div>
-          ))}
+        {todaysSessions.map((s) => (
+          <div key={s.id} className="py-2 border-b border-mist text-sm">
+            {fmtHM(s.duration_minutes)} studied · {s.lesson?.name}
+          </div>
+        ))}
         {todaysClasses.map((c) => (
           <button
             key={c.id}
@@ -214,10 +272,9 @@ export default function Dashboard() {
             · {c.lesson?.name}
           </button>
         ))}
-        {sessions.filter((s) => s.session_date === today).length === 0 &&
-          todaysClasses.length === 0 && (
-            <p className="text-sm text-ink/40 py-2">Nothing yet today.</p>
-          )}
+        {todaysSessions.length === 0 && todaysClasses.length === 0 && (
+          <p className="text-sm text-ink/40 py-2">Nothing yet today.</p>
+        )}
       </div>
 
       <div>
@@ -304,6 +361,6 @@ export default function Dashboard() {
           onSaved={load}
         />
       )}
-    </div>
+    </motion.div>
   );
 }
