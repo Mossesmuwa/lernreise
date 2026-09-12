@@ -40,6 +40,12 @@ function startOfMonthISO() {
 function fmtHM(min) {
   return `${Math.floor(min / 60)}h ${min % 60}m`;
 }
+function greeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
 
 export default function Dashboard() {
   const [status, setStatus] = useState("loading"); // loading | error | ready
@@ -161,19 +167,19 @@ export default function Dashboard() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="p-4 md:p-0 max-w-4xl mx-auto space-y-7"
+      className="p-4 md:p-0 max-w-5xl mx-auto space-y-8"
     >
       <PageHeader
-        eyebrow="Monday, your journey"
-        title="Your German journey"
-        description="A little progress, every day."
+        eyebrow={new Date().toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}
+        title={greeting()}
+        description="Your next small step is already waiting."
       />
 
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 p-1.5 rounded-2xl bg-card border border-mist shadow-[var(--lr-shadow-soft)]">
         {levels.map((lvl) => (
           <div
             key={lvl.id}
-            className={`flex-1 text-center py-2 rounded-lg ${lvl.status === "current" ? "bg-pine-soft" : "bg-card border border-mist"}`}
+            className={`flex-1 text-center py-2.5 rounded-xl ${lvl.status === "current" ? "bg-pine-soft shadow-sm" : ""}`}
           >
             <p
               className={`text-[11px] ${lvl.status === "current" ? "text-pine-deep" : "text-ink/50"}`}
@@ -190,8 +196,9 @@ export default function Dashboard() {
       </div>
 
       {course && (
-        <div className="bg-pine text-white rounded-2xl p-5 shadow-[var(--lr-shadow-lifted)] relative overflow-hidden">
-          <div className="absolute -right-10 -top-12 w-40 h-40 rounded-full border border-white/10" />
+        <div className="bg-gradient-to-br from-pine-deep via-pine to-[#2b8d71] text-white rounded-[1.35rem] p-6 md:p-7 shadow-[var(--lr-shadow-lifted)] relative overflow-hidden">
+          <div className="absolute -right-12 -top-16 w-56 h-56 rounded-full border border-white/10" />
+          <div className="absolute right-10 -bottom-24 w-48 h-48 rounded-full border border-white/10" />
           <p className="text-[11px] uppercase tracking-[0.14em] text-white/65 mb-3">
             Continue learning
           </p>
@@ -274,8 +281,15 @@ export default function Dashboard() {
         </motion.p>
       )}
 
-      <div>
-        <p className="text-xs text-ink/60 mb-2">Today</p>
+      <div className="grid md:grid-cols-2 gap-4">
+      <section className="rounded-2xl border border-mist bg-card p-5 shadow-[var(--lr-shadow-soft)]">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pine">Today</p>
+            <p className="font-display text-lg mt-1">Your activity</p>
+          </div>
+          <span className="w-8 h-8 rounded-full bg-pine-soft text-pine flex items-center justify-center text-xs">{todaysSessions.length + todaysClasses.length}</span>
+        </div>
         {todaysSessions.map((s) => (
           <div key={s.id} className="py-2 border-b border-mist text-sm">
             {fmtHM(s.duration_minutes)} studied · {s.lesson?.name}
@@ -298,11 +312,14 @@ export default function Dashboard() {
         {todaysSessions.length === 0 && todaysClasses.length === 0 && (
           <p className="text-sm text-ink/40 py-2">Nothing yet today.</p>
         )}
-      </div>
+      </section>
 
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-ink/60">Upcoming</p>
+      <section className="rounded-2xl border border-mist bg-card p-5 shadow-[var(--lr-shadow-soft)]">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-pine">Next up</p>
+            <p className="font-display text-lg mt-1">Upcoming classes</p>
+          </div>
           <TextLink to="/calendar">View calendar</TextLink>
         </div>
         {upcoming.map((c) => (
@@ -333,6 +350,7 @@ export default function Dashboard() {
         {upcoming.length === 0 && (
           <p className="text-sm text-ink/40 py-2">Nothing scheduled.</p>
         )}
+      </section>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
