@@ -7,14 +7,29 @@ import {
   restoreTeacherClass,
 } from "../lib/api";
 import PageHeader from "../components/PageHeader";
+import EmptyState from "../components/EmptyState";
+import ErrorState from "../components/ErrorState";
 
 export default function Trash() {
   const [sessions, setSessions] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [status, setStatus] = useState("loading");
+  const [error, setError] = useState(null);
 
   async function load() {
-    setSessions(await listDeletedStudySessions());
-    setClasses(await listDeletedTeacherClasses());
+    setStatus("loading");
+    try {
+      const [sessionRows, classRows] = await Promise.all([
+        listDeletedStudySessions(),
+        listDeletedTeacherClasses(),
+      ]);
+      setSessions(sessionRows);
+      setClasses(classRows);
+      setStatus("ready");
+    } catch (loadError) {
+      setError(loadError);
+      setStatus("error");
+    }
   }
 
   useEffect(() => {
@@ -22,6 +37,18 @@ export default function Trash() {
   }, []);
 
   const empty = sessions.length === 0 && classes.length === 0;
+
+  if (status === "loading")
+    return <div className="p-6 text-sm text-ink/50">Loading trash...</div>;
+  if (status === "error")
+    return (
+      <div className="p-4 md:p-0 max-w-3xl mx-auto">
+        <ErrorState
+          onRetry={load}
+          description={error?.message || "We could not load your trash."}
+        />
+      </div>
+    );
 
   return (
     <div className="p-4 md:p-0 max-w-3xl mx-auto space-y-6">
@@ -40,7 +67,12 @@ export default function Trash() {
         ever removed for good from here.
       </p>
 
-      {empty && <p className="text-sm text-ink/40">Nothing in the trash.</p>}
+      {empty && (
+        <EmptyState
+          title="Nothing in the trash"
+          description="Deleted sessions and classes will appear here so you can restore them."
+        />
+      )}
 
       {sessions.map((s) => (
         <div

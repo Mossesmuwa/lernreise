@@ -16,6 +16,15 @@ There's no public signup page by design (see the spec's Auth & security section)
 8. `npm install && npm run dev`
 9. Go to `/login` and sign in with the email/password from step 4.
 
+## Security deployment checklist
+
+- Apply the complete `schema.sql` in Supabase after every schema/RPC change. The token-scoped RPCs use `SECURITY DEFINER` with an explicit `search_path`; the direct access-log writer is not executable by client roles.
+- Apply `storage-setup.sql` so avatar and book-cover uploads are restricted to paths beginning with the authenticated owner's UID.
+- In Supabase Auth settings, enable the strongest available password policy, email rate limits, leaked-password protection, and CAPTCHA/rate limiting where available.
+- Keep `VITE_SUPABASE_ANON_KEY` client-visible by design, but never expose the service-role key in Vite environment variables or browser code. The service-role key belongs only in Edge Function secrets.
+- Schedule Edge Functions through Supabase Cron or another authenticated server-side scheduler. Do not expose service-role credentials to the client.
+- Verify `X-Frame-Options`, CSP, HSTS, and the other response headers from `vercel.json` after deployment.
+
 ## What's real and wired up
 
 Login (+ forgot/reset password), auth guard, Dashboard, Course, Calendar, History, Settings, Sharing, Trash, Onboarding, the public read-only Visitor view (`/shared/:token`) and Teacher view (`/teacher/:token`) — all backed by `src/lib/api.js` and the schema. Responsive: sidebar + side-panel drawers at `md:` and up, bottom nav + full-screen drawers below it. `npm run build` passes clean.

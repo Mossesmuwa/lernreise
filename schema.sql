@@ -211,6 +211,7 @@ create policy "owner_can_view_access_log" on share_access_log for select using (
 create or replace function resolve_share_code(p_code text)
 returns table (token text, role text)
 language sql security definer
+set search_path = public
 as $$
   select token, role from share_links
   where code = p_code and revoked = false and (expires_at is null or expires_at > now());
@@ -219,6 +220,7 @@ $$;
 create or replace function validate_share_token(p_token text)
 returns table (share_link_id uuid, owner_id uuid, role text, teacher_id uuid, expires_at timestamptz)
 language sql security definer
+set search_path = public
 as $$
   select id, owner_id, role, teacher_id, expires_at
   from share_links
@@ -231,6 +233,7 @@ $$;
 create or replace function record_share_access(p_share_link_id uuid)
 returns void
 language sql security definer
+set search_path = public
 as $$
   insert into share_access_log (share_link_id) values (p_share_link_id);
 $$;
@@ -241,6 +244,7 @@ $$;
 create or replace function get_shared_dashboard(p_token text)
 returns jsonb
 language plpgsql security definer
+set search_path = public
 as $$
 declare
   v_share record;
@@ -289,6 +293,7 @@ $$;
 create or replace function get_teacher_classes(p_token text)
 returns jsonb
 language plpgsql security definer
+set search_path = public
 as $$
 declare
   v_share record;
@@ -318,6 +323,7 @@ $$;
 create or replace function teacher_reschedule_class(p_token text, p_class_id uuid, p_new_scheduled_at timestamptz)
 returns boolean
 language plpgsql security definer
+set search_path = public
 as $$
 declare
   v_share record;
@@ -342,3 +348,37 @@ begin
   return true;
 end;
 $$;
+
+create or replace function teacher_complete_class(p_token text, p_class_id uuid, p_duration_minutes int)
+returns boolean
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_share record;
+begin
+  select * into v_share from share_links
+    where token = p_token and revoked = false and (expires_at is null or expires_at > now());
+  if v_share is null or v_share.role <> 'teacher_editor' then
+    return false;
+  end if;
+
+  if p_duration_minutes is not null and (p_duration_minutes < 1 or p_duration_minutes > 1440) then
+    return false;
+  end if;
+
+  update teacher_classes
+    set status = 'completed', duration_minutes = p_duration_minutes
+    where id = p_class_id
+      and owner_id = v_share.owner_id
+      and teacher_id = v_share.teacher_id;
+
+  return found;
+end;
+$$;
+
+-- This helper is only called internally by the token-scoped functions above.
+-- Direct anonymous writes would let callers manufacture access-log rows.
+revoke execute on function record_share_access(uuid) from public;
+revoke execute on function record_share_access(uuid) from anon;
+revoke execute on function record_share_access(uuid) from authenticated;

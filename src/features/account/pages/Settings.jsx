@@ -11,6 +11,7 @@ import {
   updateSettings,
   getPublicProfile,
   updatePublicProfile,
+  uploadAvatar,
 } from "../accountApi";
 import { listStudySessions, listTeacherClasses } from "../../../lib/api";
 import PageHeader from "../../../components/PageHeader";
@@ -72,11 +73,12 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState(null);
   const [passwordError, setPasswordError] = useState(false);
+  const [avatarSaving, setAvatarSaving] = useState(false);
 
   useEffect(() => {
     getSettings().then(setSettings);
     getPublicProfile().then((p) => {
-      setProfile(p);
+      setProfile(p ?? {});
       setDisplayName(p?.display_name ?? "");
     });
   }, []);
@@ -156,6 +158,42 @@ export default function Settings() {
       <section>
         <p className="text-xs text-ink/60 mb-2">Account</p>
         <div className="bg-card border border-mist rounded-xl p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-full bg-paper border border-mist overflow-hidden flex items-center justify-center">
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="font-display text-pine text-lg">L</span>
+              )}
+            </div>
+            <label className="text-sm font-medium text-pine cursor-pointer">
+              {avatarSaving ? "Uploading..." : "Change profile photo"}
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={avatarSaving}
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  setAvatarSaving(true);
+                  try {
+                    const avatarUrl = await uploadAvatar(file);
+                    setProfile((current) => ({
+                      ...current,
+                      avatar_url: avatarUrl,
+                    }));
+                  } finally {
+                    setAvatarSaving(false);
+                  }
+                }}
+              />
+            </label>
+          </div>
           <p className="text-sm">{session?.user?.email}</p>
           <div>
             <label className="block text-xs text-ink/60 mb-1">

@@ -328,9 +328,20 @@ export async function listShareLinks() {
   const { data, error } = await supabase
     .from("share_links")
     .select(
-      "id, role, teacher_id, teacher:teachers(name), token, code, label, expires_at, revoked, created_at",
+      "id, role, teacher_id, teacher:teachers(name), token, code, label, expires_at, revoked, created_at, share_access_log(accessed_at)",
     )
     .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function updateShareLink(id, patch) {
+  const { data, error } = await supabase
+    .from("share_links")
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .single();
   if (error) throw error;
   return data;
 }
@@ -412,6 +423,16 @@ export async function teacherRescheduleClass(token, classId, newScheduledAt) {
     p_token: token,
     p_class_id: classId,
     p_new_scheduled_at: newScheduledAt,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function teacherCompleteClass(token, classId, durationMinutes) {
+  const { data, error } = await supabase.rpc("teacher_complete_class", {
+    p_token: token,
+    p_class_id: classId,
+    p_duration_minutes: durationMinutes ?? null,
   });
   if (error) throw error;
   return data;
