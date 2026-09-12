@@ -395,6 +395,22 @@ export async function resolveShareCode(code) {
   return data?.[0] ?? null;
 }
 
+export async function ensureShareSession() {
+  const { data } = await supabase.auth.getSession();
+  if (data.session) return data.session;
+  const { data: anonymous, error } = await supabase.auth.signInAnonymously();
+  if (error) throw error;
+  return anonymous.session;
+}
+
+export async function claimShareLink(token) {
+  const { data, error } = await supabase.rpc("claim_share_link", {
+    p_token: token,
+  });
+  if (error) throw error;
+  return data?.[0] ?? null;
+}
+
 export async function recordShareAccess(shareLinkId) {
   const { error } = await supabase.rpc("record_share_access", {
     p_share_link_id: shareLinkId,

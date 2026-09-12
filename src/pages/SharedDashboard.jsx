@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
-import { validateShareToken, getSharedDashboard } from "../lib/api";
+import { claimShareLink, ensureShareSession, validateShareToken, getSharedDashboard } from "../lib/api";
 import { supabase } from "../lib/supabaseClient";
 import JourneyPath from "../components/JourneyPath";
 import SharedDashboardSkeleton from "../components/SharedDashboardSkeleton";
@@ -53,6 +53,12 @@ export default function SharedDashboard() {
   const load = useCallback(async () => {
     setState("loading");
     try {
+      await ensureShareSession();
+      const claimed = await claimShareLink(token);
+      if (!claimed || claimed.role !== "viewer") {
+        setState("invalid");
+        return;
+      }
       const validated = await validateShareToken(token);
       if (!validated || validated.role !== "viewer") {
         setState("invalid");

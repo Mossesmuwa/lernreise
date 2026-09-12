@@ -153,6 +153,9 @@ create table share_links (
   label text,
   expires_at timestamptz,
   revoked boolean not null default false,
+  claimed_by uuid references auth.users(id) on delete set null,
+  claimed_at timestamptz,
+  last_ip_hash text,
   created_at timestamptz not null default now(),
   constraint teacher_editor_requires_teacher check (role <> 'teacher_editor' or teacher_id is not null)
 );
@@ -198,13 +201,10 @@ create policy "owner_can_view_access_log" on share_access_log for select using (
   exists (select 1 from share_links sl where sl.id = share_access_log.share_link_id and sl.owner_id = auth.uid())
 );
 
--- ---------- Visitor access (no login) ----------
--- A visitor never authenticates, so RLS above does not apply to them.
--- Instead, a SECURITY DEFINER function validates their token/code and
--- returns just enough to know what they're allowed to see or touch.
--- The app then uses further SECURITY DEFINER functions, scoped by the
--- returned role/teacher_id, to serve read-only data (viewer) or allow
--- writes limited to that teacher's own teacher_classes (teacher_editor).
+-- ---------- Visitor access (anonymous session) ----------
+-- A visitor receives an anonymous Supabase session. The first session that
+-- claims a link is stored on that link, so the bearer token cannot be reused
+-- by a different session after it has been claimed.
 
 -- Resolves a typed access code to its token + role, so a visitor who
 -- received a code instead of a link has somewhere to actually use it.
@@ -217,6 +217,49 @@ as $$
   where code = p_code and revoked = false and (expires_at is null or expires_at > now());
 $$;
 
+create or replace function claim_share_link(p_token text)
+returns table (share_link_id uuid, role text, expires_at timestamptz)
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_share share_links%rowtype;
+  v_ip text;
+begin
+  if auth.uid() is null then
+    return;
+  end if;
+
+  select * into v_share from share_links
+    where token = p_token
+      and revoked = false
+      and (expires_at is null or expires_at > now());
+  if v_share.id is null or (v_share.claimed_by is not null and v_share.claimed_by <> auth.uid()) then
+    return;
+  end if;
+
+  v_ip := coalesce(
+    current_setting('request.headers', true)::json->>'x-forwarded-for',
+    current_setting('request.headers', true)::json->>'x-real-ip',
+    ''
+  );
+
+  update share_links
+    set claimed_by = coalesce(claimed_by, auth.uid()),
+        claimed_at = coalesce(claimed_at, now()),
+        last_ip_hash = encode(digest(v_ip || ':' || p_token, 'sha256'), 'hex')
+    where id = v_share.id
+      and (claimed_by is null or claimed_by = auth.uid());
+
+  if not found then
+    return;
+  end if;
+
+  return query select share_links.id, share_links.role, share_links.expires_at
+    from share_links where id = v_share.id;
+end;
+$$;
+
 create or replace function validate_share_token(p_token text)
 returns table (share_link_id uuid, owner_id uuid, role text, teacher_id uuid, expires_at timestamptz)
 language sql security definer
@@ -226,7 +269,8 @@ as $$
   from share_links
   where token = p_token
     and revoked = false
-    and (expires_at is null or expires_at > now());
+    and (expires_at is null or expires_at > now())
+    and (claimed_by is null or claimed_by = auth.uid());
 $$;
 
 -- Call this once per visitor open to populate share_access_log / last_accessed.
@@ -252,7 +296,7 @@ declare
   v_result jsonb;
 begin
   select * into v_share from share_links
-    where token = p_token and revoked = false and (expires_at is null or expires_at > now());
+    where token = p_token and revoked = false and (expires_at is null or expires_at > now()) and claimed_by = auth.uid();
   if v_share is null or v_share.role <> 'viewer' then
     return null;
   end if;
@@ -300,7 +344,7 @@ declare
   v_result jsonb;
 begin
   select * into v_share from share_links
-    where token = p_token and revoked = false and (expires_at is null or expires_at > now());
+    where token = p_token and revoked = false and (expires_at is null or expires_at > now()) and claimed_by = auth.uid();
   if v_share is null or v_share.role <> 'teacher_editor' then
     return null;
   end if;
@@ -330,7 +374,7 @@ declare
   v_old timestamptz;
 begin
   select * into v_share from share_links
-    where token = p_token and revoked = false and (expires_at is null or expires_at > now());
+    where token = p_token and revoked = false and (expires_at is null or expires_at > now()) and claimed_by = auth.uid();
   if v_share is null or v_share.role <> 'teacher_editor' then
     return false;
   end if;
@@ -358,7 +402,7 @@ declare
   v_share record;
 begin
   select * into v_share from share_links
-    where token = p_token and revoked = false and (expires_at is null or expires_at > now());
+    where token = p_token and revoked = false and (expires_at is null or expires_at > now()) and claimed_by = auth.uid();
   if v_share is null or v_share.role <> 'teacher_editor' then
     return false;
   end if;
@@ -377,8 +421,8 @@ begin
 end;
 $$;
 
--- This helper is only called internally by the token-scoped functions above.
--- Direct anonymous writes would let callers manufacture access-log rows.
 revoke execute on function record_share_access(uuid) from public;
 revoke execute on function record_share_access(uuid) from anon;
 revoke execute on function record_share_access(uuid) from authenticated;
+revoke execute on function claim_share_link(text) from public;
+grant execute on function claim_share_link(text) to anon, authenticated;

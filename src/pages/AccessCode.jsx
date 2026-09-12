@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
-import { resolveShareCode } from "../lib/api";
+import { ensureShareSession, resolveShareCode } from "../lib/api";
 
 const CODE_LENGTH = 8;
 const MAX_ATTEMPTS = 5;
@@ -51,7 +51,13 @@ export default function AccessCode() {
     if (code.length < CODE_LENGTH) return;
 
     setChecking(true);
-    const result = await resolveShareCode(code);
+    let result = null;
+    try {
+      await ensureShareSession();
+      result = await resolveShareCode(code);
+    } catch {
+      result = null;
+    }
     setChecking(false);
 
     if (!result) {

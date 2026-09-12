@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
+  claimShareLink,
+  ensureShareSession,
   validateShareToken,
   getTeacherClassesForToken,
   teacherCompleteClass,
@@ -22,8 +24,14 @@ export default function TeacherView() {
 
   async function load() {
     try {
+      await ensureShareSession();
       const validated = await validateShareToken(token);
       if (!validated || validated.role !== "teacher_editor") {
+        setState("invalid");
+        return;
+      }
+      const claimed = await claimShareLink(token);
+      if (!claimed || claimed.role !== "teacher_editor") {
         setState("invalid");
         return;
       }
