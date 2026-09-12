@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { listShareLinks, listTeachers, revokeShareLink } from '../lib/api';
-import NewShareLinkModal from '../components/NewShareLinkModal';
+import { useEffect, useState } from "react";
+import BackButton from "../components/BackButton";
+import CopyField from "../components/CopyField";
+import { listShareLinks, listTeachers, revokeShareLink } from "../lib/api";
+import NewShareLinkModal from "../components/NewShareLinkModal";
 
 export default function Sharing() {
   const [links, setLinks] = useState([]);
@@ -18,37 +19,55 @@ export default function Sharing() {
     load();
   }, []);
 
-  const teacherLinks = links.filter((l) => l.role === 'teacher_editor');
-  const viewerLinks = links.filter((l) => l.role === 'viewer');
+  const teacherLinks = links.filter((l) => l.role === "teacher_editor");
+  const viewerLinks = links.filter((l) => l.role === "viewer");
 
   function status(link) {
-    if (link.revoked) return 'Revoked';
-    if (link.expires_at && new Date(link.expires_at) < new Date()) return 'Expired';
-    return 'Active';
+    if (link.revoked) return "Revoked";
+    if (link.expires_at && new Date(link.expires_at) < new Date())
+      return "Expired";
+    return "Active";
   }
 
   function LinkCard({ link }) {
+    const path = link.role === "teacher_editor" ? "teacher" : "shared";
+    const url = `${window.location.origin}/${path}/${link.token}`;
+
     return (
-      <div className="border border-mist rounded-xl p-3 mb-2">
-        <div className="flex justify-between items-center mb-1">
-          <p className="text-sm">{link.label || link.teacher?.name || 'Untitled link'}</p>
+      <div className="border border-mist rounded-xl p-3 mb-2 space-y-2">
+        <div className="flex justify-between items-center">
+          <p className="text-sm">
+            {link.label || link.teacher?.name || "Untitled link"}
+          </p>
           <span className="text-[11px] bg-pine-soft text-pine-deep px-2 py-0.5 rounded">
-            {link.role === 'teacher_editor' ? 'Editor · Schedule only' : 'Viewer'}
+            {link.role === "teacher_editor"
+              ? "Editor · Schedule only"
+              : "Viewer"}
           </span>
         </div>
-        <p className="text-xs text-ink/50 mb-2">
-          {link.expires_at ? `Expires ${new Date(link.expires_at).toLocaleDateString()}` : 'No expiry'} · {status(link)}
+        <p className="text-xs text-ink/50">
+          {link.expires_at
+            ? `Expires ${new Date(link.expires_at).toLocaleDateString()}`
+            : "No expiry"}{" "}
+          · {status(link)}
         </p>
+
         {!link.revoked && (
-          <button
-            onClick={async () => {
-              await revokeShareLink(link.id);
-              load();
-            }}
-            className="text-xs px-2 py-1 rounded border border-mist"
-          >
-            Revoke
-          </button>
+          <>
+            <CopyField value={url} label="Link" />
+            {link.code && (
+              <CopyField value={link.code} label="Code — enter at /access" />
+            )}
+            <button
+              onClick={async () => {
+                await revokeShareLink(link.id);
+                load();
+              }}
+              className="text-xs px-2 py-1 rounded border border-mist"
+            >
+              Revoke
+            </button>
+          </>
         )}
       </div>
     );
@@ -57,15 +76,15 @@ export default function Sharing() {
   return (
     <div className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-5">
       <div className="flex items-center gap-2">
-        <Link to="/settings" className="text-ink/50">
-          ←
-        </Link>
+        <BackButton to="/settings" />
         <p className="font-display text-lg">Sharing</p>
       </div>
 
       <section>
         <p className="text-xs text-ink/60 mb-2">Teachers</p>
-        {teacherLinks.length === 0 && <p className="text-sm text-ink/40">None yet.</p>}
+        {teacherLinks.length === 0 && (
+          <p className="text-sm text-ink/40">None yet.</p>
+        )}
         {teacherLinks.map((l) => (
           <LinkCard key={l.id} link={l} />
         ))}
@@ -73,7 +92,9 @@ export default function Sharing() {
 
       <section>
         <p className="text-xs text-ink/60 mb-2">Shared views</p>
-        {viewerLinks.length === 0 && <p className="text-sm text-ink/40">None yet.</p>}
+        {viewerLinks.length === 0 && (
+          <p className="text-sm text-ink/40">None yet.</p>
+        )}
         {viewerLinks.map((l) => (
           <LinkCard key={l.id} link={l} />
         ))}
@@ -86,7 +107,12 @@ export default function Sharing() {
         + New access link
       </button>
 
-      <NewShareLinkModal open={createOpen} onClose={() => setCreateOpen(false)} teachers={teachers} onSaved={load} />
+      <NewShareLinkModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        teachers={teachers}
+        onSaved={load}
+      />
     </div>
   );
 }

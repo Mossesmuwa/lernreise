@@ -206,11 +206,21 @@ create policy "owner_can_view_access_log" on share_access_log for select using (
 -- returned role/teacher_id, to serve read-only data (viewer) or allow
 -- writes limited to that teacher's own teacher_classes (teacher_editor).
 
-create or replace function validate_share_token(p_token text)
-returns table (share_link_id uuid, owner_id uuid, role text, teacher_id uuid)
+-- Resolves a typed access code to its token + role, so a visitor who
+-- received a code instead of a link has somewhere to actually use it.
+create or replace function resolve_share_code(p_code text)
+returns table (token text, role text)
 language sql security definer
 as $$
-  select id, owner_id, role, teacher_id
+  select token, role from share_links
+  where code = p_code and revoked = false and (expires_at is null or expires_at > now());
+$$;
+
+create or replace function validate_share_token(p_token text)
+returns table (share_link_id uuid, owner_id uuid, role text, teacher_id uuid, expires_at timestamptz)
+language sql security definer
+as $$
+  select id, owner_id, role, teacher_id, expires_at
   from share_links
   where token = p_token
     and revoked = false
