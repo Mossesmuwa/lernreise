@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { listTeacherClasses, listTeachers, getCurrentCourse } from '../lib/api';
 import AddEditClassModal from '../components/AddEditClassModal';
 import ClassDetailDrawer from '../components/ClassDetailDrawer';
+import PageHeader from '../components/PageHeader';
 
 const DAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
@@ -49,10 +50,12 @@ export default function CalendarPage() {
   const classesByDay = (d) => classes.filter((c) => new Date(c.scheduled_at).toDateString() === d.toDateString());
 
   return (
-    <div className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-4">
-      <p className="font-display text-lg">
-        {weekStart.toLocaleDateString([], { month: 'long', year: 'numeric' })}
-      </p>
+    <div className="p-4 md:p-0 max-w-4xl mx-auto space-y-5">
+      <PageHeader
+        eyebrow="Your schedule"
+        title={weekStart.toLocaleDateString([], { month: 'long', year: 'numeric' })}
+        description="Classes, practice time, and what is coming next."
+      />
 
       <div className="grid grid-cols-7 gap-1 text-center">
         {days.map((d, i) => {

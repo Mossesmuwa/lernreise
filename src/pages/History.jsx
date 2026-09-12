@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { listStudySessions, listTeacherClasses } from "../lib/api";
 import HistorySkeleton from "../components/HistorySkeleton";
+import PageHeader from "../components/PageHeader";
 
 const list = { hidden: {}, visible: { transition: { staggerChildren: 0.04 } } };
 const row = {
@@ -84,10 +85,12 @@ export default function History() {
   }, {});
 
   return (
-    <div className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="font-display text-lg">History</p>
-      </div>
+    <div className="p-4 md:p-0 max-w-4xl mx-auto space-y-5">
+      <PageHeader
+        eyebrow="Your progress"
+        title="History"
+        description="A record of the time and effort behind your journey."
+      />
 
       <input
         value={search}

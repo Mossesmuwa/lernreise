@@ -11,6 +11,7 @@ import LessonDetailDrawer from "../components/LessonDetailDrawer";
 import LevelDetailDrawer from "../components/LevelDetailDrawer";
 import RecordStudyModal from "../components/RecordStudyModal";
 import CourseSkeleton from "../components/CourseSkeleton";
+import PageHeader from "../components/PageHeader";
 
 const STATUS_MARK = { completed: "✓", in_progress: "●", not_started: "○" };
 
@@ -67,9 +68,13 @@ export default function Course() {
       variants={list}
       initial="hidden"
       animate="visible"
-      className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-3"
+      className="p-4 md:p-0 max-w-4xl mx-auto space-y-4"
     >
-      <p className="font-display text-lg mb-1">Course</p>
+      <PageHeader
+        eyebrow="Your learning path"
+        title="Course"
+        description="Move through each level at your own pace."
+      />
 
       {levels.map((level) => {
         const isCurrent = level.status === "current";

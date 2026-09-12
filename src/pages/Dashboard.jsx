@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import TextLink from "../components/TextLink";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
 import DashboardSkeleton from "../components/DashboardSkeleton";
 import {
   getLevels,
@@ -14,6 +16,7 @@ import { calculateStreak } from "../lib/streak";
 import RecordStudyModal from "../components/RecordStudyModal";
 import AddEditClassModal from "../components/AddEditClassModal";
 import ClassDetailDrawer from "../components/ClassDetailDrawer";
+import { IconBook, IconCalendar, IconFlame, IconPlay, IconPlus } from "../components/icons";
 
 const STATUS_MARK = { completed: "✓", current: "●", not_started: "○" };
 
@@ -152,14 +155,13 @@ export default function Dashboard() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-5"
+      className="p-4 md:p-0 max-w-4xl mx-auto space-y-7"
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs text-ink/60">Guten Tag</p>
-          <p className="font-display text-lg">Your German journey</p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Monday, your journey"
+        title="Your German journey"
+        description="A little progress, every day."
+      />
 
       <div className="flex gap-1.5">
         {levels.map((lvl) => (
@@ -182,9 +184,10 @@ export default function Dashboard() {
       </div>
 
       {course && (
-        <div className="bg-card border border-mist rounded-xl p-4">
-          <p className="text-xs text-ink/60 mb-2">Currently learning</p>
-          <div className="flex gap-3 items-center">
+        <div className="bg-pine text-white rounded-2xl p-5 shadow-[var(--lr-shadow-lifted)] relative overflow-hidden">
+          <div className="absolute -right-10 -top-12 w-40 h-40 rounded-full border border-white/10" />
+          <p className="text-[11px] uppercase tracking-[0.14em] text-white/65 mb-3">Continue learning</p>
+          <div className="flex gap-4 items-center relative">
             <div className="w-11 h-14 rounded-md bg-paper border border-mist flex items-center justify-center flex-shrink-0 overflow-hidden">
               {course.cover_image_url ? (
                 <img
@@ -193,51 +196,35 @@ export default function Dashboard() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-ink/30 text-xs">📖</span>
+                <IconBook className="text-pine" size={20} />
               )}
             </div>
             <div className="flex-1">
-              <p className="font-medium">{course.title}</p>
-              <p className="text-sm text-ink/60 mb-2">
+              <p className="font-medium text-white">{course.title}</p>
+              <p className="text-sm text-white/70 mb-2">
                 {currentLesson?.name ?? "—"} ·{" "}
                 {currentLesson ? "in progress" : ""}
               </p>
-              <div className="h-1.5 bg-paper rounded-full overflow-hidden">
+              <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-pine transition-all duration-500"
+                  className="h-full bg-white transition-all duration-500"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
+              <p className="text-[11px] text-white/60 mt-1.5">{progressPct}% complete · {currentLesson?.name ?? "Ready for your next lesson"}</p>
             </div>
+            <Link to="/course" aria-label="Continue course" className="ml-auto flex-shrink-0 rounded-full bg-white text-pine p-2.5 hover:scale-105">
+              <IconPlay size={17} />
+            </Link>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="bg-card border border-mist rounded-lg p-3">
-          <p className="text-[11px] text-ink/60">Today</p>
-          <p className="text-lg font-medium">{fmtHM(todayMin)}</p>
-        </div>
-        <div className="bg-card border border-mist rounded-lg p-3">
-          <p className="text-[11px] text-ink/60">This week</p>
-          <p className="text-lg font-medium">{fmtHM(weekMin)}</p>
-          {lastWeekMin > 0 && (
-            <p
-              className={`text-[11px] mt-0.5 ${weekDelta >= 0 ? "text-pine" : "text-ink/40"}`}
-            >
-              {weekDelta >= 0 ? "↑" : "↓"} {fmtHM(Math.abs(weekDelta))} vs last
-              week
-            </p>
-          )}
-        </div>
-        <div className="bg-card border border-mist rounded-lg p-3">
-          <p className="text-[11px] text-ink/60">This month</p>
-          <p className="text-lg font-medium">{fmtHM(monthMin)}</p>
-        </div>
-        <div className="bg-card border border-mist rounded-lg p-3">
-          <p className="text-[11px] text-ink/60">Total</p>
-          <p className="text-lg font-medium">{fmtHM(totalMin)}</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard label="Today" value={fmtHM(todayMin)} detail="Keep the rhythm" tone="accent" />
+        <StatCard label="This week" value={fmtHM(weekMin)} detail={lastWeekMin > 0 ? `${weekDelta >= 0 ? "↑" : "↓"} ${fmtHM(Math.abs(weekDelta))} vs last week` : "Your weekly total"} />
+        <StatCard label="This month" value={fmtHM(monthMin)} detail="Time invested" />
+        <StatCard label="All time" value={fmtHM(totalMin)} detail="Every session counts" />
       </div>
 
       {streak > 0 && (
@@ -245,9 +232,9 @@ export default function Dashboard() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: "spring", stiffness: 400, damping: 20 }}
-          className="text-sm text-amber inline-block"
+          className="inline-flex items-center gap-1.5 text-sm text-amber bg-amber-soft rounded-full px-3 py-1.5"
         >
-          🔥 {streak}-day streak
+          <IconFlame size={16} /> {streak}-day streak
         </motion.p>
       )}
 
@@ -312,18 +299,18 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="flex gap-2 pt-1">
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
           onClick={() => setRecordOpen(true)}
-          className="flex-1 rounded-lg bg-pine text-white text-sm font-medium py-2.5"
+          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-pine text-white text-sm font-medium py-3 shadow-[var(--lr-shadow-soft)] hover:bg-pine-deep"
         >
-          + Record study
+          <IconPlus size={17} /> Record study
         </button>
         <button
           onClick={() => setAddClassOpen(true)}
-          className="flex-1 rounded-lg border border-mist text-sm font-medium py-2.5"
+          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-mist bg-card text-sm font-medium py-3 hover:border-pine/50 hover:bg-pine-soft/40"
         >
-          Add class
+          <IconCalendar size={17} /> Add class
         </button>
       </div>
 

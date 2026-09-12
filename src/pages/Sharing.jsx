@@ -5,6 +5,7 @@ import CopyField from "../components/CopyField";
 import SharingSkeleton from "../components/SharingSkeleton";
 import { listShareLinks, listTeachers, revokeShareLink } from "../lib/api";
 import NewShareLinkModal from "../components/NewShareLinkModal";
+import PageHeader from "../components/PageHeader";
 
 function relativeExpiry(expiresAt) {
   if (!expiresAt) return "No expiry";
@@ -126,11 +127,15 @@ export default function Sharing() {
   }
 
   return (
-    <div className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-5">
-      <div className="flex items-center gap-2">
+    <div className="p-4 md:p-0 max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center gap-2 mb-2">
         <BackButton to="/settings" />
-        <p className="font-display text-lg">Sharing</p>
       </div>
+      <PageHeader
+        eyebrow="Invite with confidence"
+        title="Sharing"
+        description="Give teachers or viewers the right level of access to your journey."
+      />
 
       <section>
         <p className="text-xs text-ink/60 mb-2">Teachers</p>

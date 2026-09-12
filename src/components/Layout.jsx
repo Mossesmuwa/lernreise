@@ -1,12 +1,19 @@
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 import { signOut } from "../features/auth/authApi";
+import {
+  IconBook,
+  IconCalendar,
+  IconHistory,
+  IconHome,
+  IconSettings,
+} from "./icons";
 
 const navItems = [
-  { to: "/", label: "Dashboard", end: true },
-  { to: "/course", label: "Course" },
-  { to: "/calendar", label: "Calendar" },
-  { to: "/history", label: "History" },
+  { to: "/", label: "Dashboard", end: true, icon: IconHome },
+  { to: "/course", label: "Course", icon: IconBook },
+  { to: "/calendar", label: "Calendar", icon: IconCalendar },
+  { to: "/history", label: "History", icon: IconHistory },
 ];
 
 export default function Layout() {
@@ -15,8 +22,11 @@ export default function Layout() {
   return (
     <div className="min-h-screen md:flex">
       {/* Desktop sidebar — hidden on mobile */}
-      <aside className="hidden md:flex md:w-56 md:flex-col md:border-r md:border-mist md:bg-card md:px-4 md:py-6 md:sticky md:top-0 md:h-screen">
-        <p className="font-display text-pine text-lg mb-8 px-2">Lernreise</p>
+      <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-mist md:bg-card md:px-5 md:py-7 md:sticky md:top-0 md:h-screen">
+        <div className="px-3 mb-10">
+          <p className="font-display text-pine text-xl leading-none">Lernreise</p>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-ink/40 mt-2">Your language journal</p>
+        </div>
         <nav className="flex-1 space-y-1">
           {navItems.map((item) => (
             <NavLink
@@ -24,27 +34,29 @@ export default function Layout() {
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `block rounded-lg px-3 py-2 text-sm ${
+                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${
                   isActive
-                    ? "bg-pine-soft text-pine-deep font-medium"
-                    : "text-ink/70 hover:bg-paper"
+                    ? "bg-pine-soft text-pine-deep font-medium shadow-sm"
+                    : "text-ink/65 hover:bg-paper hover:text-ink"
                 }`
               }
             >
+              <item.icon size={17} />
               {item.label}
             </NavLink>
           ))}
         </nav>
         <Link
           to="/settings"
-          className="rounded-lg px-3 py-2 text-sm text-ink/70 hover:bg-paper"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink/65 hover:bg-paper hover:text-ink"
         >
+          <IconSettings size={17} />
           Settings
         </Link>
         {session && (
           <button
             onClick={signOut}
-            className="text-left rounded-lg px-3 py-2 text-sm text-ink/50 hover:bg-paper"
+            className="text-left rounded-xl px-3 py-2.5 text-sm text-ink/45 hover:bg-paper hover:text-ink"
           >
             Sign out
           </button>
@@ -70,22 +82,21 @@ export default function Layout() {
       </header>
 
       <div className="flex-1 min-w-0">
-        <main className="pb-20 md:pb-6 md:px-8 md:py-6 md:max-w-3xl">
+        <main className="pb-24 md:pb-10 md:px-10 md:py-9 md:max-w-5xl">
           <Outlet />
         </main>
       </div>
 
       {/* Mobile bottom nav — hidden on desktop */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-card border-t border-mist flex justify-around py-2">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur border-t border-mist flex justify-around py-2.5 z-20">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.end}
-            className={({ isActive }) =>
-              `text-xs px-3 py-1 ${isActive ? "text-pine font-medium" : "text-ink/50"}`
-            }
+            className={({ isActive }) => `flex flex-col items-center gap-0.5 text-[10px] px-3 py-1 ${isActive ? "text-pine font-medium" : "text-ink/50"}`}
           >
+              <item.icon size={18} />
             {item.label}
           </NavLink>
         ))}

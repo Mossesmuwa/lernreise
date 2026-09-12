@@ -6,6 +6,7 @@ import {
   restoreStudySession,
   restoreTeacherClass,
 } from "../lib/api";
+import PageHeader from "../components/PageHeader";
 
 export default function Trash() {
   const [sessions, setSessions] = useState([]);
@@ -23,11 +24,16 @@ export default function Trash() {
   const empty = sessions.length === 0 && classes.length === 0;
 
   return (
-    <div className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-5">
+    <div className="p-4 md:p-0 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-2">
         <BackButton to="/settings" />
-        <p className="font-display text-lg">Trash</p>
       </div>
+
+      <PageHeader
+        eyebrow="Keep your records tidy"
+        title="Trash"
+        description="Deleted sessions and classes can be restored whenever you need them."
+      />
 
       <p className="text-xs text-ink/60">
         Deleted study sessions and classes stay here until restored — nothing is

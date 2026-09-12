@@ -5,6 +5,12 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --lr-shadow-soft: 0 10px 30px rgba(31, 46, 41, 0.06);
+    --lr-shadow-lifted: 0 18px 45px rgba(31, 46, 41, 0.1);
+    --lr-ring: rgba(15, 110, 86, 0.18);
+  }
+
   html {
     @apply bg-paper text-ink font-sans;
   }
@@ -13,6 +19,30 @@
   }
   :focus-visible {
     @apply outline outline-2 outline-offset-2 outline-pine;
+  }
+
+  ::selection {
+    background: #cfeee2;
+    color: #085041;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    transition-property: color, background-color, border-color, box-shadow,
+      opacity, transform;
+    transition-duration: 160ms;
+    transition-timing-function: ease-out;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #0f6e56;
+    box-shadow: 0 0 0 4px var(--lr-ring);
+    outline: none;
   }
 }
 

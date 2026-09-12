@@ -13,6 +13,7 @@ import {
   updatePublicProfile,
 } from "../accountApi";
 import { listStudySessions, listTeacherClasses } from "../../../lib/api";
+import PageHeader from "../../../components/PageHeader";
 
 function toCSV(sessions, classes) {
   const rows = [
@@ -144,9 +145,13 @@ export default function Settings() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-6"
+      className="p-4 md:p-0 max-w-3xl mx-auto space-y-7"
     >
-      <p className="font-display text-lg">Settings</p>
+      <PageHeader
+        eyebrow="Personalise your space"
+        title="Settings"
+        description="Your profile, preferences, and learning reminders."
+      />
 
       <section>
         <p className="text-xs text-ink/60 mb-2">Account</p>
