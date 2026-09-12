@@ -2,7 +2,21 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import Modal from "./Modal";
 import CopyField from "./CopyField";
+import SegmentedControl from "./SegmentedControl";
 import { createShareLink } from "../lib/api";
+
+const ROLE_OPTIONS = [
+  {
+    value: "viewer",
+    title: "Viewer",
+    subtitle: "Someone to see your progress, read-only",
+  },
+  {
+    value: "teacher_editor",
+    title: "Teacher",
+    subtitle: "Can manage their own class schedule only",
+  },
+];
 
 export default function NewShareLinkModal({
   open,
@@ -14,7 +28,7 @@ export default function NewShareLinkModal({
   const [teacherId, setTeacherId] = useState(teachers?.[0]?.id || "");
   const [label, setLabel] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
-  const [format, setFormat] = useState("link"); // link | code | both
+  const [format, setFormat] = useState("both"); // defaults to both, so a code always exists if wanted
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState(null);
 
@@ -33,10 +47,16 @@ export default function NewShareLinkModal({
     onSaved?.();
   }
 
-  function handleClose() {
+  function reset() {
     setCreated(null);
     setLabel("");
     setExpiresAt("");
+    setRole("viewer");
+    setFormat("both");
+  }
+
+  function handleClose() {
+    reset();
     onClose();
   }
 
@@ -55,8 +75,12 @@ export default function NewShareLinkModal({
             Send this to whoever should have access.
           </p>
           <CopyField value={url} label="Link" />
-          {created.code && (
+          {created.code ? (
             <CopyField value={created.code} label="Code — enter at /access" />
+          ) : (
+            <p className="text-xs text-ink/40">
+              No code for this one — link only, as chosen.
+            </p>
           )}
           <button
             onClick={handleClose}
@@ -73,19 +97,30 @@ export default function NewShareLinkModal({
     <Modal open={open} onClose={handleClose} title="New access link">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs text-ink/60 mb-1">
+          <label className="block text-xs text-ink/60 mb-2">
             Who is this for?
           </label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="w-full rounded-lg border border-mist bg-paper px-3 py-2 text-sm"
-          >
-            <option value="viewer">Someone to view your progress</option>
-            <option value="teacher_editor">
-              A teacher, to manage their own schedule
-            </option>
-          </select>
+          <div className="grid grid-cols-2 gap-2">
+            {ROLE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setRole(opt.value)}
+                className={`text-left rounded-lg border p-3 transition-colors ${
+                  role === opt.value
+                    ? "border-pine bg-pine-soft"
+                    : "border-mist bg-paper"
+                }`}
+              >
+                <p
+                  className={`text-sm font-medium ${role === opt.value ? "text-pine-deep" : ""}`}
+                >
+                  {opt.title}
+                </p>
+                <p className="text-[11px] text-ink/50 mt-0.5">{opt.subtitle}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         {role === "teacher_editor" && (
@@ -118,17 +153,18 @@ export default function NewShareLinkModal({
           />
         </div>
 
-        <div>
-          <label className="block text-xs text-ink/60 mb-1">Share as</label>
-          <select
+        <div className="flex items-center justify-between">
+          <label className="text-xs text-ink/60">Share as</label>
+          <SegmentedControl
+            name="share-format"
             value={format}
-            onChange={(e) => setFormat(e.target.value)}
-            className="w-full rounded-lg border border-mist bg-paper px-3 py-2 text-sm"
-          >
-            <option value="link">Link only</option>
-            <option value="code">Code only</option>
-            <option value="both">Both</option>
-          </select>
+            onChange={setFormat}
+            options={[
+              { value: "link", label: "Link" },
+              { value: "code", label: "Code" },
+              { value: "both", label: "Both" },
+            ]}
+          />
         </div>
 
         <div>

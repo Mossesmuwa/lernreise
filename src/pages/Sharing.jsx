@@ -1,13 +1,34 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import BackButton from "../components/BackButton";
 import CopyField from "../components/CopyField";
+import SharingSkeleton from "../components/SharingSkeleton";
 import { listShareLinks, listTeachers, revokeShareLink } from "../lib/api";
 import NewShareLinkModal from "../components/NewShareLinkModal";
 
+function relativeExpiry(expiresAt) {
+  if (!expiresAt) return "No expiry";
+  const days = Math.ceil((new Date(expiresAt) - new Date()) / 86_400_000);
+  if (days < 0) return "Expired";
+  if (days === 0) return "Expires today";
+  if (days === 1) return "Expires tomorrow";
+  return `Expires in ${days} days`;
+}
+
+const list = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+};
+const row = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+};
+
 export default function Sharing() {
-  const [links, setLinks] = useState([]);
+  const [links, setLinks] = useState(null);
   const [teachers, setTeachers] = useState([]);
   const [createOpen, setCreateOpen] = useState(false);
+  const [confirmingId, setConfirmingId] = useState(null);
 
   async function load() {
     const [l, t] = await Promise.all([listShareLinks(), listTeachers()]);
@@ -18,6 +39,8 @@ export default function Sharing() {
   useEffect(() => {
     load();
   }, []);
+
+  if (links === null) return <SharingSkeleton />;
 
   const teacherLinks = links.filter((l) => l.role === "teacher_editor");
   const viewerLinks = links.filter((l) => l.role === "viewer");
@@ -32,9 +55,13 @@ export default function Sharing() {
   function LinkCard({ link }) {
     const path = link.role === "teacher_editor" ? "teacher" : "shared";
     const url = `${window.location.origin}/${path}/${link.token}`;
+    const confirming = confirmingId === link.id;
 
     return (
-      <div className="border border-mist rounded-xl p-3 mb-2 space-y-2">
+      <motion.div
+        variants={row}
+        className="border border-mist rounded-xl p-3 mb-2 space-y-2"
+      >
         <div className="flex justify-between items-center">
           <p className="text-sm">
             {link.label || link.teacher?.name || "Untitled link"}
@@ -46,10 +73,7 @@ export default function Sharing() {
           </span>
         </div>
         <p className="text-xs text-ink/50">
-          {link.expires_at
-            ? `Expires ${new Date(link.expires_at).toLocaleDateString()}`
-            : "No expiry"}{" "}
-          · {status(link)}
+          {relativeExpiry(link.expires_at)} · {status(link)}
         </p>
 
         {!link.revoked && (
@@ -58,18 +82,46 @@ export default function Sharing() {
             {link.code && (
               <CopyField value={link.code} label="Code — enter at /access" />
             )}
-            <button
-              onClick={async () => {
-                await revokeShareLink(link.id);
-                load();
-              }}
-              className="text-xs px-2 py-1 rounded border border-mist"
-            >
-              Revoke
-            </button>
+
+            <AnimatePresence mode="wait">
+              {confirming ? (
+                <motion.div
+                  key="confirm"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex gap-2 overflow-hidden"
+                >
+                  <button
+                    onClick={async () => {
+                      await revokeShareLink(link.id);
+                      setConfirmingId(null);
+                      load();
+                    }}
+                    className="text-xs px-2 py-1 rounded border border-red-300 text-red-700"
+                  >
+                    Confirm revoke
+                  </button>
+                  <button
+                    onClick={() => setConfirmingId(null)}
+                    className="text-xs px-2 py-1 rounded border border-mist"
+                  >
+                    Cancel
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="revoke"
+                  onClick={() => setConfirmingId(link.id)}
+                  className="text-xs px-2 py-1 rounded border border-mist"
+                >
+                  Revoke
+                </motion.button>
+              )}
+            </AnimatePresence>
           </>
         )}
-      </div>
+      </motion.div>
     );
   }
 
@@ -85,9 +137,11 @@ export default function Sharing() {
         {teacherLinks.length === 0 && (
           <p className="text-sm text-ink/40">None yet.</p>
         )}
-        {teacherLinks.map((l) => (
-          <LinkCard key={l.id} link={l} />
-        ))}
+        <motion.div variants={list} initial="hidden" animate="visible">
+          {teacherLinks.map((l) => (
+            <LinkCard key={l.id} link={l} />
+          ))}
+        </motion.div>
       </section>
 
       <section>
@@ -95,9 +149,11 @@ export default function Sharing() {
         {viewerLinks.length === 0 && (
           <p className="text-sm text-ink/40">None yet.</p>
         )}
-        {viewerLinks.map((l) => (
-          <LinkCard key={l.id} link={l} />
-        ))}
+        <motion.div variants={list} initial="hidden" animate="visible">
+          {viewerLinks.map((l) => (
+            <LinkCard key={l.id} link={l} />
+          ))}
+        </motion.div>
       </section>
 
       <button

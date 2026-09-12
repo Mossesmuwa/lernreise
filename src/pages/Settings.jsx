@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import NavRow from "../components/NavRow";
+import Toggle from "../components/Toggle";
+import SegmentedControl from "../components/SegmentedControl";
+import SettingsSkeleton from "../components/SettingsSkeleton";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../lib/AuthContext";
 import {
@@ -42,13 +46,32 @@ function toCSV(sessions, classes) {
     .join("\n");
 }
 
+function SavedFlash({ show }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.span
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="text-xs text-pine"
+        >
+          Saved
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function Settings() {
   const { session } = useAuth();
   const [settings, setSettings] = useState(null);
   const [profile, setProfile] = useState(null);
   const [displayName, setDisplayName] = useState("");
+  const [nameSaved, setNameSaved] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState(null);
+  const [passwordError, setPasswordError] = useState(false);
 
   useEffect(() => {
     getSettings().then(setSettings);
@@ -80,8 +103,7 @@ export default function Settings() {
     });
   }
 
-  async function handleWeeklyToggle() {
-    const next = !settings.weekly_summary_enabled;
+  async function handleWeeklyToggle(next) {
     setSettings((s) => ({ ...s, weekly_summary_enabled: next }));
     await updateSettings({ weekly_summary_enabled: next });
   }
@@ -89,13 +111,17 @@ export default function Settings() {
   async function handleSaveDisplayName() {
     await updatePublicProfile({ display_name: displayName });
     setProfile((p) => ({ ...p, display_name: displayName }));
+    setNameSaved(true);
+    setTimeout(() => setNameSaved(false), 1500);
   }
 
   async function handlePasswordChange(event) {
     event.preventDefault();
     const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordError(Boolean(error));
     setPasswordMsg(error ? "Something went wrong." : "Password updated.");
     setNewPassword("");
+    setTimeout(() => setPasswordMsg(null), 2500);
   }
 
   async function handleExport() {
@@ -112,10 +138,15 @@ export default function Settings() {
     URL.revokeObjectURL(url);
   }
 
-  if (!settings || !profile) return null;
+  if (!settings || !profile) return <SettingsSkeleton />;
 
   return (
-    <div className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="p-4 md:p-0 max-w-md md:max-w-none mx-auto space-y-6"
+    >
       <p className="font-display text-lg">Settings</p>
 
       <section>
@@ -126,7 +157,7 @@ export default function Settings() {
             <label className="block text-xs text-ink/60 mb-1">
               Display name
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
@@ -134,13 +165,17 @@ export default function Settings() {
               />
               <button
                 onClick={handleSaveDisplayName}
-                className="text-sm px-3 rounded-lg border border-mist"
+                className="text-sm px-3 py-2 rounded-lg border border-mist"
               >
                 Save
               </button>
+              <SavedFlash show={nameSaved} />
             </div>
           </div>
-          <form onSubmit={handlePasswordChange} className="flex gap-2">
+          <form
+            onSubmit={handlePasswordChange}
+            className="flex gap-2 items-center"
+          >
             <input
               type="password"
               placeholder="New password"
@@ -151,12 +186,23 @@ export default function Settings() {
             />
             <button
               type="submit"
-              className="text-sm px-3 rounded-lg border border-mist"
+              className="text-sm px-3 py-2 rounded-lg border border-mist"
             >
               Change
             </button>
           </form>
-          {passwordMsg && <p className="text-xs text-ink/60">{passwordMsg}</p>}
+          <AnimatePresence>
+            {passwordMsg && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className={`text-xs ${passwordError ? "text-red-700" : "text-pine"}`}
+              >
+                {passwordMsg}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
       </section>
 
@@ -165,25 +211,27 @@ export default function Settings() {
         <div className="bg-card border border-mist rounded-xl divide-y divide-mist">
           <div className="flex justify-between items-center px-4 py-3">
             <span className="text-sm">Theme</span>
-            <select
+            <SegmentedControl
+              name="theme"
               value={settings.theme}
-              onChange={(e) => handleThemeChange(e.target.value)}
-              className="text-sm bg-transparent"
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
+              onChange={handleThemeChange}
+              options={[
+                { value: "light", label: "Light" },
+                { value: "dark", label: "Dark" },
+              ]}
+            />
           </div>
           <div className="flex justify-between items-center px-4 py-3">
             <span className="text-sm">Language</span>
-            <select
+            <SegmentedControl
+              name="lang"
               value={settings.ui_language}
-              onChange={(e) => handleLangChange(e.target.value)}
-              className="text-sm bg-transparent"
-            >
-              <option value="de">Deutsch</option>
-              <option value="en">English</option>
-            </select>
+              onChange={handleLangChange}
+              options={[
+                { value: "de", label: "Deutsch" },
+                { value: "en", label: "English" },
+              ]}
+            />
           </div>
         </div>
       </section>
@@ -219,9 +267,11 @@ export default function Settings() {
           </div>
           <div className="flex justify-between items-center px-4 py-3">
             <span className="text-sm">Weekly summary</span>
-            <button onClick={handleWeeklyToggle} className="text-sm text-pine">
-              {settings.weekly_summary_enabled ? "On" : "Off"}
-            </button>
+            <Toggle
+              checked={settings.weekly_summary_enabled}
+              onChange={handleWeeklyToggle}
+              label="Weekly summary emails"
+            />
           </div>
         </div>
       </section>
@@ -238,6 +288,6 @@ export default function Settings() {
       >
         Sign out
       </button>
-    </div>
+    </motion.div>
   );
 }
