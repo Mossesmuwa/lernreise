@@ -53,6 +53,8 @@ create table courses (
   end_date date,
   estimated_end_date date,
   cover_image_url text, -- owner-uploaded photo of the book; null shows a generic placeholder
+  isbn text,
+  publisher_url text,
   created_at timestamptz not null default now()
 );
 

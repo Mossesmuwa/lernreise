@@ -67,6 +67,13 @@ export default function Onboarding() {
         title: a2Title || 'A2',
         status: 'current',
         start_date: a2Start || null,
+        cover_image_url: a2Title?.toLowerCase().includes('momente')
+          ? 'https://shop.hueber.de/media/catalog/product/cache/b86d527f2b20d32aba03f0618086efa3/9/7/9783196017922_1.jpg'
+          : null,
+        isbn: a2Title?.toLowerCase().includes('momente') ? '978-3-19-601792-2' : null,
+        publisher_url: a2Title?.toLowerCase().includes('momente')
+          ? 'https://shop.hueber.de/de/e-momente-a2-kursbuch-iv-978-3-19-601792-2.html'
+          : null,
       })
       .select()
       .single();

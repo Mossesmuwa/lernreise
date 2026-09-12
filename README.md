@@ -63,6 +63,8 @@ The teacher view is separate and intentionally limited to the linked teacher's c
 - Vercel deployment configuration
 - Supabase Edge Functions for email reminders and weekly summaries
 
+The current Momente A2 metadata and cover reference come from the official [Hueber product page](https://shop.hueber.de/de/e-momente-a2-kursbuch-iv-978-3-19-601792-2.html). The app stores only book metadata, lesson labels, and your own progress; it does not reproduce the textbook's copyrighted exercises or lesson content.
+
 ## Local Development
 
 This project requires a Supabase project for authentication and data.
@@ -73,22 +75,23 @@ This project requires a Supabase project for authentication and data.
 4. Create the private owner account in Supabase Authentication.
 5. Copy the owner UID into `seed.sql`, edit the seed values, and run it if you want sample journey data.
 6. If the Supabase project already existed before the share-link security upgrade, run `supabase/migrations/20260912_share_link_claims.sql` after the original schema.
-7. Create `.env` from `.env.example` and set:
+7. If the Supabase project already existed before the Momente A2 course upgrade, run `supabase/migrations/20260913_momente_a2_course.sql`.
+8. Create `.env` from `.env.example` and set:
 
    ```text
    VITE_SUPABASE_URL=your-project-url
    VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
 
-8. Enable anonymous sign-ins in Supabase Auth. This is required for the one-session read-only sharing flow.
-9. Install dependencies and start the app:
+9. Enable anonymous sign-ins in Supabase Auth. This is required for the one-session read-only sharing flow.
+10. Install dependencies and start the app:
 
    ```bash
    npm install
    npm run dev
    ```
 
-10. Open `/login` for the owner application or `/welcome` for the access selection screen.
+11. Open `/login` for the owner application or `/welcome` for the access selection screen.
 
 Never put the Supabase service-role key in `.env` variables exposed to Vite or in browser code.
 

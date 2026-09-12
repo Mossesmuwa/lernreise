@@ -56,8 +56,8 @@ begin
   insert into courses (owner_id, level_id, institution_id, title, status, start_date, end_date)
     values (v_owner, v_level_a1, v_institution_id, 'Goethe-Institut A1', 'completed', '2026-07-13', '2026-09-02');
 
-  insert into courses (owner_id, level_id, title, status, start_date, estimated_end_date)
-    values (v_owner, v_level_a2, 'Momente A2 Kursbuch', 'current', '2026-09-07', '2026-11-07')
+  insert into courses (owner_id, level_id, title, status, start_date, estimated_end_date, cover_image_url, isbn, publisher_url)
+    values (v_owner, v_level_a2, 'Momente A2 Kursbuch', 'current', '2026-09-07', '2026-11-07', 'https://shop.hueber.de/media/catalog/product/cache/b86d527f2b20d32aba03f0618086efa3/9/7/9783196017922_1.jpg', '978-3-19-601792-2', 'https://shop.hueber.de/de/e-momente-a2-kursbuch-iv-978-3-19-601792-2.html')
     returning id into v_course_a2;
 
   insert into modules (owner_id, course_id, name, sort_order) values (v_owner, v_course_a2, 'Module 1', 1) returning id into v_module1;
