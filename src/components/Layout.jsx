@@ -24,8 +24,12 @@ export default function Layout() {
       {/* Desktop sidebar — hidden on mobile */}
       <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-mist md:bg-card md:px-5 md:py-7 md:sticky md:top-0 md:h-screen">
         <div className="px-3 mb-10">
-          <p className="font-display text-pine text-xl leading-none">Lernreise</p>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-ink/40 mt-2">Your language journal</p>
+          <p className="font-display text-pine text-xl leading-none">
+            Lernreise
+          </p>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-ink/40 mt-2">
+            Your language journal
+          </p>
         </div>
         <nav className="flex-1 space-y-1">
           {navItems.map((item) => (
@@ -94,9 +98,11 @@ export default function Layout() {
             key={item.to}
             to={item.to}
             end={item.end}
-            className={({ isActive }) => `flex flex-col items-center gap-0.5 text-[10px] px-3 py-1 ${isActive ? "text-pine font-medium" : "text-ink/50"}`}
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-0.5 text-[10px] px-3 py-1 ${isActive ? "text-pine font-medium" : "text-ink/50"}`
+            }
           >
-              <item.icon size={18} />
+            <item.icon size={18} />
             {item.label}
           </NavLink>
         ))}

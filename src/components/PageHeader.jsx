@@ -7,8 +7,12 @@ export default function PageHeader({ eyebrow, title, description, action }) {
             {eyebrow}
           </p>
         )}
-        <h1 className="font-display text-2xl leading-tight text-ink">{title}</h1>
-        {description && <p className="text-sm text-ink/60 mt-1">{description}</p>}
+        <h1 className="font-display text-2xl leading-tight text-ink">
+          {title}
+        </h1>
+        {description && (
+          <p className="text-sm text-ink/60 mt-1">{description}</p>
+        )}
       </div>
       {action && <div className="flex-shrink-0">{action}</div>}
     </div>

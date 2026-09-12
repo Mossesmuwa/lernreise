@@ -6,13 +6,19 @@ export default function StatCard({ label, value, detail, tone = "default" }) {
   }[tone];
 
   return (
-    <div className={`rounded-xl border p-4 shadow-[var(--lr-shadow-soft)] ${toneClass}`}>
-      <p className={`text-[11px] ${tone === "accent" ? "text-white/70" : "text-ink/60"}`}>
+    <div
+      className={`rounded-xl border p-4 shadow-[var(--lr-shadow-soft)] ${toneClass}`}
+    >
+      <p
+        className={`text-[11px] ${tone === "accent" ? "text-white/70" : "text-ink/60"}`}
+      >
         {label}
       </p>
       <p className="font-display text-xl mt-1">{value}</p>
       {detail && (
-        <p className={`text-[11px] mt-1 ${tone === "accent" ? "text-white/70" : "text-ink/50"}`}>
+        <p
+          className={`text-[11px] mt-1 ${tone === "accent" ? "text-white/70" : "text-ink/50"}`}
+        >
           {detail}
         </p>
       )}

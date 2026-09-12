@@ -16,7 +16,13 @@ import { calculateStreak } from "../lib/streak";
 import RecordStudyModal from "../components/RecordStudyModal";
 import AddEditClassModal from "../components/AddEditClassModal";
 import ClassDetailDrawer from "../components/ClassDetailDrawer";
-import { IconBook, IconCalendar, IconFlame, IconPlay, IconPlus } from "../components/icons";
+import {
+  IconBook,
+  IconCalendar,
+  IconFlame,
+  IconPlay,
+  IconPlus,
+} from "../components/icons";
 
 const STATUS_MARK = { completed: "✓", current: "●", not_started: "○" };
 
@@ -186,7 +192,9 @@ export default function Dashboard() {
       {course && (
         <div className="bg-pine text-white rounded-2xl p-5 shadow-[var(--lr-shadow-lifted)] relative overflow-hidden">
           <div className="absolute -right-10 -top-12 w-40 h-40 rounded-full border border-white/10" />
-          <p className="text-[11px] uppercase tracking-[0.14em] text-white/65 mb-3">Continue learning</p>
+          <p className="text-[11px] uppercase tracking-[0.14em] text-white/65 mb-3">
+            Continue learning
+          </p>
           <div className="flex gap-4 items-center relative">
             <div className="w-11 h-14 rounded-md bg-paper border border-mist flex items-center justify-center flex-shrink-0 overflow-hidden">
               {course.cover_image_url ? (
@@ -211,9 +219,16 @@ export default function Dashboard() {
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
-              <p className="text-[11px] text-white/60 mt-1.5">{progressPct}% complete · {currentLesson?.name ?? "Ready for your next lesson"}</p>
+              <p className="text-[11px] text-white/60 mt-1.5">
+                {progressPct}% complete ·{" "}
+                {currentLesson?.name ?? "Ready for your next lesson"}
+              </p>
             </div>
-            <Link to="/course" aria-label="Continue course" className="ml-auto flex-shrink-0 rounded-full bg-white text-pine p-2.5 hover:scale-105">
+            <Link
+              to="/course"
+              aria-label="Continue course"
+              className="ml-auto flex-shrink-0 rounded-full bg-white text-pine p-2.5 hover:scale-105"
+            >
               <IconPlay size={17} />
             </Link>
           </div>
@@ -221,10 +236,31 @@ export default function Dashboard() {
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Today" value={fmtHM(todayMin)} detail="Keep the rhythm" tone="accent" />
-        <StatCard label="This week" value={fmtHM(weekMin)} detail={lastWeekMin > 0 ? `${weekDelta >= 0 ? "↑" : "↓"} ${fmtHM(Math.abs(weekDelta))} vs last week` : "Your weekly total"} />
-        <StatCard label="This month" value={fmtHM(monthMin)} detail="Time invested" />
-        <StatCard label="All time" value={fmtHM(totalMin)} detail="Every session counts" />
+        <StatCard
+          label="Today"
+          value={fmtHM(todayMin)}
+          detail="Keep the rhythm"
+          tone="accent"
+        />
+        <StatCard
+          label="This week"
+          value={fmtHM(weekMin)}
+          detail={
+            lastWeekMin > 0
+              ? `${weekDelta >= 0 ? "↑" : "↓"} ${fmtHM(Math.abs(weekDelta))} vs last week`
+              : "Your weekly total"
+          }
+        />
+        <StatCard
+          label="This month"
+          value={fmtHM(monthMin)}
+          detail="Time invested"
+        />
+        <StatCard
+          label="All time"
+          value={fmtHM(totalMin)}
+          detail="Every session counts"
+        />
       </div>
 
       {streak > 0 && (
