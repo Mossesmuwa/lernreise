@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
-import { claimShareLink, ensureShareSession, validateShareToken, getSharedDashboard } from "../lib/api";
+import {
+  claimShareLink,
+  ensureShareSession,
+  validateShareToken,
+  getSharedDashboard,
+} from "../lib/api";
 import { supabase } from "../lib/supabaseClient";
 import JourneyPath from "../components/JourneyPath";
 import SharedDashboardSkeleton from "../components/SharedDashboardSkeleton";

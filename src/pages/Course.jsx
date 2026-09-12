@@ -99,7 +99,7 @@ export default function Course() {
                   {level.status.replace("_", " ")}
                 </p>
               </div>
-              {level.status === "not_started" ? (
+              {level.status === "not_started" || level.status === "completed" ? (
                 <span
                   role="button"
                   tabIndex={0}
@@ -110,7 +110,7 @@ export default function Course() {
                   }}
                   className="text-xs px-2 py-1 rounded border border-mist"
                 >
-                  Set as current
+                  {level.status === "completed" ? "Reopen level" : "Set as current"}
                 </span>
               ) : (
                 <IconChevronRight className="text-ink/30" />

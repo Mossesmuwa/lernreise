@@ -86,11 +86,29 @@ export async function markLevelComplete(levelId, nextLevelId) {
 }
 
 export async function setLevelCurrent(levelId) {
-  const { error } = await supabase
+  const { error: clearError } = await supabase
+    .from("levels")
+    .update({ status: "not_started" })
+    .eq("status", "current");
+  if (clearError) throw clearError;
+
+  const { error: levelError } = await supabase
     .from("levels")
     .update({ status: "current" })
     .eq("id", levelId);
-  if (error) throw error;
+  if (levelError) throw levelError;
+
+  const { error: clearCourseError } = await supabase
+    .from("courses")
+    .update({ status: "not_started" })
+    .eq("status", "current");
+  if (clearCourseError) throw clearCourseError;
+
+  const { error: courseError } = await supabase
+    .from("courses")
+    .update({ status: "current" })
+    .eq("level_id", levelId);
+  if (courseError) throw courseError;
 }
 
 export async function getLevelDetail(levelId) {
