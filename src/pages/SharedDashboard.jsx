@@ -51,6 +51,7 @@ export default function SharedDashboard() {
   const { token } = useParams();
   const reduceMotion = useReducedMotion();
   const [state, setState] = useState("loading"); // loading | invalid | error | ready
+  const [loadError, setLoadError] = useState(null);
   const [data, setData] = useState(null);
   const [share, setShare] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -82,6 +83,7 @@ export default function SharedDashboard() {
       setState("ready");
     } catch (err) {
       console.error("Failed to load shared dashboard", err);
+      setLoadError(err);
       setState("error");
     }
   }, [token]);
@@ -107,7 +109,7 @@ export default function SharedDashboard() {
       <StatusMessage
         icon="⚠️"
         title="This shared view could not open"
-        subtitle="The link may need to be claimed again, Anonymous Sign-Ins may be disabled, or the share-link migration has not been applied."
+        subtitle={loadError?.message || "Something went wrong."}
         action={
           <div className="flex flex-col items-center gap-2">
             <button

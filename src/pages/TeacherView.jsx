@@ -89,7 +89,7 @@ export default function TeacherView() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <ErrorState
           onRetry={load}
-          description="The link may need to be claimed again, Anonymous Sign-Ins may be disabled, or the share-link migration has not been applied."
+          description={error?.message || "Something went wrong."}
         />
         <Link
           to="/welcome"
